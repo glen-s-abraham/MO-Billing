@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimate Form - MO-Billing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; padding-bottom: 50px; }
+        .row-total-display { font-weight: bold; background-color: #e9ecef; }
+        .grand-total-display { font-size: 1.5rem; font-weight: 800; color: #198754; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div class="mb-4">
+        <h2 th:text="${estimate.id != null ? 'Edit Estimate ' + estimate.estimateNumber : 'Create New Estimate'}">Estimate</h2>
+        <a href="/estimates" class="text-decoration-none">&larr; Back to Estimates</a>
+    </div>
+
+    <form th:action="@{/estimates/save}" th:object="${estimate}" method="post" id="estimateForm">
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{estimateNumber}">
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary">Document Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Select Buyer</label>
+                        <select class="form-select" th:field="*{buyerEntity}" required>
+                            <option value="">-- Select Buyer --</option>
+                            <option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:text="${buyer.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Estimate Date</label>
+                        <input type="date" class="form-control" th:field="*{estimateDate}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Status</label>
+                        <select class="form-select" th:field="*{status}">
+                            <option value="DRAFT">DRAFT</option>
+                            <option value="SENT">SENT</option>
+                            <option value="ACCEPTED">ACCEPTED</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary">Line Items</h5>
+                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="addRowBtn">+ Add Row</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0" id="itemsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="35%">Product</th>
+                                <th width="15%">Quantity</th>
+                                <th width="20%">Rate (₹)</th>
+                                <th width="20%">Total (₹)</th>
+                                <th width="10%" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTbody">
+                            <!-- Template row for JS cloning -->
+                            <tr class="item-row template-row d-none bg-light">
+                                <td>
+                                    <select class="form-select product-select" disabled>
+                                        <option value="">-- Select --</option>
+                                        <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.title}"></option>
+                                    </select>
+                                </td>
+                                <td><input type="number" step="0.01" class="form-control qty-input" value="1" disabled></td>
+                                <td><input type="number" step="0.01" class="form-control rate-input" value="0.00" disabled></td>
+                                <td><input type="text" class="form-control row-total-display text-end" value="0.00" readonly disabled></td>
+                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row-btn fw-bold">X</button></td>
+                            </tr>
+                            
+                            <!-- Existing rows -->
+                            <tr class="item-row" th:each="item, stat : *{items}">
+                                <td>
+                                    <select class="form-select product-select" th:name="'items[' + ${stat.index} + '].productEntity'">
+                                        <option value="">-- Select --</option>
+                                        <option th:each="product : ${products}" 
+                                                th:value="${product.id}" 
+                                                th:text="${product.title}"
+                                                th:selected="${item.productEntity != null and item.productEntity.id == product.id}">
+                                        </option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control qty-input" th:name="'items[' + ${stat.index} + '].quantity'" th:value="${item.quantity}">
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" class="form-control rate-input" th:name="'items[' + ${stat.index} + '].rate'" th:value="${item.rate}">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control row-total-display text-end" th:name="'items[' + ${stat.index} + '].rowTotal'" th:value="${item.rowTotal}" readonly>
+                                </td>
+                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row-btn fw-bold">X</button></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold align-middle">Grand Total</td>
+                                <td class="text-end grand-total-display">₹ <span id="grandTotalText">0.00</span></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow-sm rounded-pill">Save Document</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.getElementById('itemsTbody');
+    const grandTotalSpan = document.getElementById('grandTotalText');
+
+    function calculateRow(row) {
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
+        const total = qty * rate;
+        row.querySelector('.row-total-display').value = total.toFixed(2);
+        calculateGrandTotal();
+    }
+
+    function calculateGrandTotal() {
+        let gt = 0;
+        document.querySelectorAll('.item-row:not(.template-row) .row-total-display').forEach(input => {
+            gt += parseFloat(input.value) || 0;
+        });
+        grandTotalSpan.textContent = gt.toFixed(2);
+    }
+
+    function updateRowIndexes() {
+        const rows = document.querySelectorAll('.item-row:not(.template-row)');
+        rows.forEach((row, idx) => {
+            row.querySelector('.product-select').name = 'items[' + idx + '].productEntity';
+            row.querySelector('.qty-input').name = 'items[' + idx + '].quantity';
+            row.querySelector('.rate-input').name = 'items[' + idx + '].rate';
+            row.querySelector('.row-total-display').name = 'items[' + idx + '].rowTotal';
+        });
+    }
+
+    tbody.addEventListener('input', function(e) {
+        if(e.target.classList.contains('qty-input') || e.target.classList.contains('rate-input')) {
+            calculateRow(e.target.closest('tr'));
+        }
+    });
+
+    tbody.addEventListener('change', function(e) {
+        if(e.target.classList.contains('product-select')) {
+            const row = e.target.closest('tr');
+            const productId = e.target.value;
+            if (productId) {
+                fetch('/api/products/' + productId)
+                    .then(r => r.json())
+                    .then(data => {
+                        row.querySelector('.rate-input').value = data.supplyRate;
+                        calculateRow(row);
+                    });
+            } else {
+                row.querySelector('.rate-input').value = '0.00';
+                calculateRow(row);
+            }
+        }
+    });
+
+    tbody.addEventListener('click', function(e) {
+        if(e.target.classList.contains('remove-row-btn')) {
+            e.target.closest('tr').remove();
+            updateRowIndexes();
+            calculateGrandTotal();
+        }
+    });
+
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+        const template = document.querySelector('.template-row').cloneNode(true);
+        template.classList.remove('template-row', 'd-none', 'bg-light');
+        
+        template.querySelectorAll('input, select').forEach(el => el.disabled = false);
+        
+        tbody.appendChild(template);
+        updateRowIndexes();
+    });
+
+    document.querySelectorAll('.item-row:not(.template-row)').forEach(row => calculateRow(row));
+});
+</script>
+</body>
+</html>

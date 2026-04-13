@@ -1,0 +1,27 @@
+package com.mariasorganics.billing.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+public class CompanyProfile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Column(length = 100)
+    private String companyName;
+
+    @Lob
+    private String billingAddress;
+
+    private String logoFilePath;
+
+    @Lob
+    private String signatureBase64;
+}

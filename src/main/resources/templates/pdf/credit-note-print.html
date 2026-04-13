@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Credit Note</title>
+    <style type="text/css">
+        @page {
+            size: A4;
+            margin: 20mm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #555;
+            }
+        }
+        body { font-family: Arial, sans-serif; color: #333; font-size: 12px; line-height: 1.5; }
+        .header { width: 100%; border-bottom: 2px solid #dc3545; padding-bottom: 20px; display: block; overflow: hidden; }
+        .logo { max-height: 80px; float: left; }
+        .company-details { float: right; text-align: right; }
+        .company-details-no-logo { text-align: right; width: 100%; display: block; }
+        .document-title { font-size: 24px; font-weight: bold; margin-top: 20px; text-transform: uppercase; color: #dc3545; }
+        .meta-container { width: 100%; margin-top: 30px; display: block; height: 160px; }
+        .bill-to { float: left; width: 50%; }
+        .doc-meta { float: right; width: 40%; text-align: right; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .items-table th { background-color: #fce4e4; border: 1px solid #ddd; padding: 8px; text-align: left; color:#dc3545; }
+        .items-table td { border: 1px solid #ddd; padding: 8px; }
+        .text-right { text-align: right; }
+        .totals { width: 100%; margin-top: 20px; display: block; }
+        .totals-table { float: right; width: 40%; border-collapse: collapse; }
+        .totals-table td { padding: 5px; }
+        .totals-table .grand-total { font-weight: bold; font-size: 16px; border-top: 2px solid #dc3545; }
+        .footer-section { margin-top: 50px; font-size: 11px; }
+        .signature-box { margin-top: 40px; text-align: right; }
+        .signature-img { max-height: 60px; border-bottom: 1px solid #000; padding-bottom: 5px; }
+        .reason-box { border: 1px solid #ddd; background-color: #f8f9fa; padding: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img th:if="${settings.logoFilePath != null}" th:src="${settings.logoFilePath}" class="logo" alt="Logo" />
+        <div th:class="${settings.logoFilePath != null ? 'company-details' : 'company-details-no-logo'}">
+            <strong style="font-size: 18px;" th:text="${settings.companyName}">Company Name</strong><br/>
+            <span th:text="${settings.billingAddress}">Address</span><br/>
+            <th:block th:each="contact : ${settings.contacts}">
+                <span th:text="${contact.contactValue}"></span><br/>
+            </th:block>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="document-title">CREDIT NOTE</div>
+
+    <div class="meta-container">
+        <div class="bill-to" th:if="${creditNote.buyerEntity != null}">
+            <strong>Issued To:</strong><br/>
+            <strong th:text="${creditNote.buyerEntity.name}">Buyer Name</strong><br/>
+            <span th:text="${creditNote.buyerEntity.billingAddress}">Buyer Address</span><br/>
+            <span th:if="${creditNote.buyerEntity.taxId != null and !creditNote.buyerEntity.taxId.isEmpty()}">Tax ID: <span th:text="${creditNote.buyerEntity.taxId}"></span></span>
+        </div>
+        <div class="doc-meta">
+            <strong>Credit Note #:</strong> <span th:text="${creditNote.creditNoteNumber}"></span><br/>
+            <strong>Date:</strong> <span th:text="${#temporals.format(creditNote.issueDate, 'dd MMM yyyy')}"></span><br/>
+            <th:block th:if="${creditNote.linkedEstimateEntity != null}">
+                <br/>
+                <strong style="color:#dc3545;">Linked Sales Estimate #:</strong><br/>
+                <span th:text="${creditNote.linkedEstimateEntity.estimateNumber}"></span>
+            </th:block>
+        </div>
+        <div style="clear: both;"></div>
+        
+        <div class="reason-box">
+            <strong>Reason for Credit:</strong> <span th:text="${creditNote.reasonText}"></span>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Returned Item</th>
+                <th>Qty</th>
+                <th>Rate Applied</th>
+                <th class="text-right">Return Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${creditNote.items}">
+                <td th:if="${item.productEntity != null}">
+                    <strong th:text="${item.productEntity.title}"></strong><br/>
+                    <span style="font-size:10px; color:#666;">Unit: <span th:text="${item.productEntity.uom}"></span></span>
+                </td>
+                <td th:unless="${item.productEntity != null}">Unknown Product</td>
+                
+                <td th:text="${#numbers.formatDecimal(item.returnQuantity, 1, 2)}"></td>
+                <td th:text="${#numbers.formatDecimal(item.rate, 1, 2)}"></td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(item.rowTotal, 1, 2)}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <table class="totals-table">
+            <tr class="grand-total">
+                <td>Total Credit (INR):</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(creditNote.totalCredit, 1, 2)}"></td>
+            </tr>
+        </table>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="footer-section">
+        <strong>Notes:</strong>
+        <p th:text="${settings.creditNoteTerms}"></p>
+        
+        <div style="margin-top: 15px; color:#555;">
+            <p th:text="${settings.creditNoteFooter}"></p>
+        </div>
+    </div>
+
+    <div class="signature-box" th:if="${settings.signatureBase64 != null and !settings.signatureBase64.isEmpty()}">
+        <img th:src="${settings.signatureBase64}" class="signature-img" alt="Signature" /><br/>
+        Authorized Signatory
+    </div>
+</body>
+</html>

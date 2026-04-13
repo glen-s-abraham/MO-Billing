@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - MO-Billing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="container">
+    <div class="mb-4">
+        <h2 th:text="${product.id != null ? 'Edit Product' : 'Add New Product'}">Add Product</h2>
+        <a href="/products" class="text-decoration-none">&larr; Back to Catalog</a>
+    </div>
+
+    <div class="card shadow-sm border-0 p-4 mx-auto" style="max-width: 600px;">
+        <form th:action="@{/products/save}" th:object="${product}" method="post">
+            <input type="hidden" th:field="*{id}">
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Product Title</label>
+                <input type="text" class="form-control" th:field="*{title}" th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                <div class="form-text">e.g. Oyster Mushrooms (Fresh), Growing Kit</div>
+            </div>
+
+            <div class="mb-3 border-bottom pb-4">
+                <label class="form-label fw-bold">Unit of Measure (UOM)</label>
+                <input type="text" class="form-control" th:field="*{uom}" th:classappend="${#fields.hasErrors('uom')} ? 'is-invalid'" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('uom')}" th:errors="*{uom}"></div>
+                <div class="form-text">e.g. kg, punnet, box, packet</div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Supply Rate (B2B)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" step="0.01" class="form-control" th:field="*{supplyRate}" th:classappend="${#fields.hasErrors('supplyRate')} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('supplyRate')}" th:errors="*{supplyRate}"></div>
+                    </div>
+                    <div class="form-text">Wholesale billing rate per UOM</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">M.R.P. (Retail)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" step="0.01" class="form-control" th:field="*{mrp}" th:classappend="${#fields.hasErrors('mrp')} ? 'is-invalid'" required>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('mrp')}" th:errors="*{mrp}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-check form-switch mt-3 mb-4">
+                <input class="form-check-input" type="checkbox" role="switch" th:field="*{isActive}" id="activeSwitch">
+                <label class="form-check-label fw-bold" for="activeSwitch">Is Currently Available?</label>
+                <div class="form-text">If disabled, this product will not be selectable when creating new invoices, preventing use of discontinued items.</div>
+            </div>
+
+            <div class="text-end border-top pt-3">
+                <button type="submit" class="btn btn-primary fw-bold px-4">Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
