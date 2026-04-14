@@ -43,38 +43,43 @@ public class EstimateService {
                         item.getTaxes().clear();
                     }
 
-                    BigDecimal totalTaxRate = BigDecimal.ZERO;
-                    if (product.getTaxes() != null) {
-                        for (ProductTax pTax : product.getTaxes()) {
-                            totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
-                            
-                            // Create snapshot
-                            EstimateItemTax snapshot = EstimateItemTax.builder()
-                                    .taxName(pTax.getTaxName())
-                                    .taxPercentage(pTax.getTaxPercentage())
-                                    .estimateItemEntity(item)
-                                    .taxAmount(BigDecimal.ZERO) // Will calculate below
-                                    .build();
-                            item.addTax(snapshot);
-                        }
-                    }
-
-                    // 2. Calculate row total based on inclusivity
-                    BigDecimal lineBaseTotal;
                     BigDecimal lineGrandTotal;
-                    
-                    if (item.isTaxInclusive()) {
-                        lineGrandTotal = item.getQuantity().multiply(item.getRate());
-                        lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
-                    } else {
-                        lineBaseTotal = item.getQuantity().multiply(item.getRate());
-                        lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
-                    }
+                    BigDecimal lineBaseTotal;
 
-                    // 3. Update snapshot tax amounts
-                    for (EstimateItemTax snapshot : item.getTaxes()) {
-                        BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
-                        snapshot.setTaxAmount(amount);
+                    if (item.isTaxEnabled()) {
+                        BigDecimal totalTaxRate = BigDecimal.ZERO;
+                        if (product.getTaxes() != null) {
+                            for (ProductTax pTax : product.getTaxes()) {
+                                totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
+                                
+                                EstimateItemTax snapshot = EstimateItemTax.builder()
+                                        .taxName(pTax.getTaxName())
+                                        .taxPercentage(pTax.getTaxPercentage())
+                                        .estimateItemEntity(item)
+                                        .taxAmount(BigDecimal.ZERO)
+                                        .build();
+                                item.addTax(snapshot);
+                            }
+                        }
+
+                        if (item.isTaxInclusive()) {
+                            // Inclusive: Rate includes tax
+                            lineGrandTotal = item.getQuantity().multiply(item.getRate());
+                            lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+                        } else {
+                            // Exclusive: Rate is base, add tax on top
+                            lineBaseTotal = item.getQuantity().multiply(item.getRate());
+                            lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
+                        }
+
+                        for (EstimateItemTax snapshot : item.getTaxes()) {
+                            BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
+                            snapshot.setTaxAmount(amount);
+                        }
+                    } else {
+                        // Tax Disabled entirely for this line
+                        lineBaseTotal = item.getQuantity().multiply(item.getRate());
+                        lineGrandTotal = lineBaseTotal;
                     }
 
                     item.setRowTotal(lineGrandTotal);

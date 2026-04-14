@@ -136,7 +136,8 @@ public class CreditNoteController {
 
             for (CreditNoteItemTax itax : item.getTaxes()) {
                 java.math.BigDecimal amount = lineBase.multiply(itax.getTaxPercentage().divide(new java.math.BigDecimal("100")));
-                taxBreakdown.put(itax.getTaxName(), taxBreakdown.getOrDefault(itax.getTaxName(), java.math.BigDecimal.ZERO).add(amount));
+                String key = itax.getTaxName() + " (" + itax.getTaxPercentage() + "%)";
+                taxBreakdown.put(key, taxBreakdown.getOrDefault(key, java.math.BigDecimal.ZERO).add(amount));
             }
         }
         context.setVariable("taxBreakdown", taxBreakdown);

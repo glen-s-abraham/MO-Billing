@@ -33,6 +33,7 @@ public class EstimateRestController {
                 item.getQuantity(),
                 item.getRate(),
                 item.isTaxInclusive(),
+                item.isTaxEnabled(),
                 item.getTaxes().stream()
                     .map(t -> new TaxDto(t.getTaxName(), t.getTaxPercentage()))
                     .collect(Collectors.toList())))
@@ -62,6 +63,7 @@ public class EstimateRestController {
         private BigDecimal quantity;
         private BigDecimal rate;
         private boolean taxInclusive;
+        private boolean taxEnabled;
         private List<TaxDto> taxes;
     }
 

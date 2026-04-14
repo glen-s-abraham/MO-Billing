@@ -41,36 +41,43 @@ public class CreditNoteService {
                         item.getTaxes().clear();
                     }
 
-                    BigDecimal totalTaxRate = BigDecimal.ZERO;
-                    if (product.getTaxes() != null) {
-                        for (ProductTax pTax : product.getTaxes()) {
-                            totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
-                            
-                            // Create snapshot
-                            CreditNoteItemTax snapshot = CreditNoteItemTax.builder()
-                                    .taxName(pTax.getTaxName())
-                                    .taxPercentage(pTax.getTaxPercentage())
-                                    .creditNoteItemEntity(item)
-                                    .taxAmount(BigDecimal.ZERO)
-                                    .build();
-                            item.addTax(snapshot);
-                        }
-                    }
-
-                    BigDecimal lineBaseTotal;
                     BigDecimal lineGrandTotal;
-                    
-                    if (item.isTaxInclusive()) {
-                        lineGrandTotal = item.getReturnQuantity().multiply(item.getRate());
-                        lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
-                    } else {
-                        lineBaseTotal = item.getReturnQuantity().multiply(item.getRate());
-                        lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
-                    }
+                    BigDecimal lineBaseTotal;
 
-                    for (CreditNoteItemTax snapshot : item.getTaxes()) {
-                        BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
-                        snapshot.setTaxAmount(amount);
+                    if (item.isTaxEnabled()) {
+                        BigDecimal totalTaxRate = BigDecimal.ZERO;
+                        if (product.getTaxes() != null) {
+                            for (ProductTax pTax : product.getTaxes()) {
+                                totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
+                                
+                                CreditNoteItemTax snapshot = CreditNoteItemTax.builder()
+                                        .taxName(pTax.getTaxName())
+                                        .taxPercentage(pTax.getTaxPercentage())
+                                        .creditNoteItemEntity(item)
+                                        .taxAmount(BigDecimal.ZERO)
+                                        .build();
+                                item.addTax(snapshot);
+                            }
+                        }
+
+                        if (item.isTaxInclusive()) {
+                            // Inclusive: Rate includes tax
+                            lineGrandTotal = item.getReturnQuantity().multiply(item.getRate());
+                            lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+                        } else {
+                            // Exclusive: Rate is base, add tax on top
+                            lineBaseTotal = item.getReturnQuantity().multiply(item.getRate());
+                            lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
+                        }
+
+                        for (CreditNoteItemTax snapshot : item.getTaxes()) {
+                            BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
+                            snapshot.setTaxAmount(amount);
+                        }
+                    } else {
+                        // Tax Disabled
+                        lineBaseTotal = item.getReturnQuantity().multiply(item.getRate());
+                        lineGrandTotal = lineBaseTotal;
                     }
 
                     item.setRowTotal(lineGrandTotal);

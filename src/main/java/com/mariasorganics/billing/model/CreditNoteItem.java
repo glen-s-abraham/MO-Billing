@@ -41,6 +41,7 @@ public class CreditNoteItem {
     private BigDecimal rowTotal = BigDecimal.ZERO;
 
     private boolean isTaxInclusive = false;
+    private boolean isTaxEnabled = true;
 
     @OneToMany(mappedBy = "creditNoteItemEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

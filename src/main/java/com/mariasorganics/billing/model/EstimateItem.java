@@ -44,6 +44,7 @@ public class EstimateItem {
     private BigDecimal rowTotal = BigDecimal.ZERO;
 
     private boolean isTaxInclusive = false;
+    private boolean isTaxEnabled = true;
 
     @OneToMany(mappedBy = "estimateItemEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
