@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class CreditNote {
     private String creditNoteNumber;
 
     @NotNull
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate issueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,6 +42,9 @@ public class CreditNote {
 
     @NotNull
     private BigDecimal totalCredit = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    private CreditNoteStatus status = CreditNoteStatus.DRAFT;
 
     @OneToMany(mappedBy = "creditNoteEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude

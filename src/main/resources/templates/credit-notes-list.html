@@ -35,6 +35,7 @@
                         <th>Buyer</th>
                         <th>Linked Estimate</th>
                         <th>Total Credit</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -46,6 +47,12 @@
                         <td th:text="${crn.linkedEstimateEntity != null ? crn.linkedEstimateEntity.estimateNumber : '-'}"></td>
                         <td class="text-danger fw-bold" th:text="${'-₹ ' + #numbers.formatDecimal(crn.totalCredit, 1, 2)}"></td>
                         <td>
+                            <span class="badge" th:classappend="${crn.status.name() == 'VOID' ? 'bg-danger text-white text-decoration-line-through' : (crn.status.name() == 'ISSUED' ? 'bg-success' : 'bg-secondary')}" th:text="${crn.status}"></span>
+                        </td>
+                        <td>
+                            <form th:action="@{/credit-notes/{id}/void(id=${crn.id})}" method="post" class="d-inline" th:if="${crn.status != null and crn.status.name() != 'VOID'}">
+                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to void this credit note?');"><i class="bi bi-x-octagon"></i> Void</button>
+                            </form>
                             <a th:href="@{/credit-notes/{id}/edit(id=${crn.id})}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                             <a th:href="@{/credit-notes/{id}/pdf(id=${crn.id})}" class="btn btn-sm btn-danger"><i class="bi bi-file-pdf"></i> PDF</a>
                         </td>

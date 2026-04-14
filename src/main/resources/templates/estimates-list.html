@@ -45,9 +45,12 @@
                         <td th:text="${est.buyerEntity != null ? est.buyerEntity.name : 'Unknown'}"></td>
                         <td th:text="${'₹ ' + #numbers.formatDecimal(est.totalAmount, 1, 2)}"></td>
                         <td>
-                            <span class="badge bg-secondary" th:text="${est.status}"></span>
+                            <span class="badge" th:classappend="${est.status.name() == 'ACCEPTED' ? 'bg-success' : (est.status.name() == 'CANCELLED' || est.status.name() == 'REJECTED' ? 'bg-danger text-white text-decoration-line-through' : 'bg-secondary')}" th:text="${est.status}"></span>
                         </td>
                         <td>
+                            <form th:action="@{/estimates/{id}/cancel(id=${est.id})}" method="post" class="d-inline" th:if="${est.status.name() != 'CANCELLED' and est.status.name() != 'REJECTED'}">
+                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to cancel this estimate?');"><i class="bi bi-x-circle"></i> Cancel</button>
+                            </form>
                             <a th:href="@{/estimates/{id}/edit(id=${est.id})}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
                             <a th:href="@{/estimates/{id}/pdf(id=${est.id})}" class="btn btn-sm btn-danger"><i class="bi bi-file-pdf"></i> PDF</a>
                         </td>

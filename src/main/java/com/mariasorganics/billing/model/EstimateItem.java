@@ -32,6 +32,9 @@ public class EstimateItem {
     private BigDecimal quantity = BigDecimal.ZERO;
 
     @NotNull
+    private BigDecimal mrp = BigDecimal.ZERO;
+
+    @NotNull
     private BigDecimal rate = BigDecimal.ZERO;
 
     @NotNull

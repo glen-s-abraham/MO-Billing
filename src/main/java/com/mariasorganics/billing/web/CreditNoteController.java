@@ -1,5 +1,6 @@
 package com.mariasorganics.billing.web;
 
+import com.mariasorganics.billing.dto.SettingsFormDto;
 import com.mariasorganics.billing.model.*;
 import com.mariasorganics.billing.service.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,13 +87,35 @@ public class CreditNoteController {
         return "credit-note-form";
     }
 
+    @PostMapping("/{id}/void")
+    public String voidCreditNote(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        CreditNote creditNote = creditNoteService.getCreditNoteById(id);
+        creditNote.setStatus(CreditNoteStatus.VOID);
+        creditNoteService.saveCreditNote(creditNote);
+        redirectAttributes.addFlashAttribute("successMessage", "Credit Note voided successfully.");
+        return "redirect:/credit-notes";
+    }
+
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id, HttpServletRequest request) {
         CreditNote creditNote = creditNoteService.getCreditNoteById(id);
         
         Context context = new Context();
         context.setVariable("creditNote", creditNote);
-        context.setVariable("settings", settingsService.getSettings());
+        
+        SettingsFormDto settings = settingsService.getSettings();
+        if (settings.getLogoFilePath() != null && settings.getLogoFilePath().startsWith("/uploads/")) {
+            try {
+                java.nio.file.Path imagePath = java.nio.file.Paths.get("." + settings.getLogoFilePath());
+                byte[] imageBytes = java.nio.file.Files.readAllBytes(imagePath);
+                String base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes);
+                String extension = settings.getLogoFilePath().toLowerCase().endsWith(".png") ? "png" : "jpeg";
+                settings.setLogoFilePath("data:image/" + extension + ";base64," + base64Image);
+            } catch (Exception e) {
+                System.err.println("Failed to load logo for PDF rendering: " + e.getMessage());
+            }
+        }
+        context.setVariable("settings", settings);
         
         String htmlContent = templateEngine.process("pdf/credit-note-print", context);
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();

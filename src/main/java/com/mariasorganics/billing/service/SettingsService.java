@@ -1,13 +1,16 @@
 package com.mariasorganics.billing.service;
 
 import com.mariasorganics.billing.dto.ContactDetailDto;
+import com.mariasorganics.billing.dto.RegistrationDetailDto;
 import com.mariasorganics.billing.dto.SettingsFormDto;
 import com.mariasorganics.billing.model.CompanyProfile;
 import com.mariasorganics.billing.model.ContactDetail;
+import com.mariasorganics.billing.model.RegistrationDetail;
 import com.mariasorganics.billing.model.DocumentConfiguration;
 import com.mariasorganics.billing.model.DocumentType;
 import com.mariasorganics.billing.repository.CompanyProfileRepository;
 import com.mariasorganics.billing.repository.ContactDetailRepository;
+import com.mariasorganics.billing.repository.RegistrationDetailRepository;
 import com.mariasorganics.billing.repository.DocumentConfigurationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class SettingsService {
 
     private final CompanyProfileRepository companyProfileRepo;
     private final ContactDetailRepository contactDetailRepo;
+    private final RegistrationDetailRepository registrationDetailRepo;
     private final DocumentConfigurationRepository docConfigRepo;
     private final FileStorageService fileStorageService;
 
@@ -33,6 +37,7 @@ public class SettingsService {
         dto.setProfileId(profile.getId());
         dto.setCompanyName(profile.getCompanyName());
         dto.setBillingAddress(profile.getBillingAddress());
+        dto.setGstin(profile.getGstin());
         dto.setLogoFilePath(profile.getLogoFilePath());
         dto.setSignatureBase64(profile.getSignatureBase64());
 
@@ -45,6 +50,16 @@ public class SettingsService {
             return cd;
         }).collect(Collectors.toList());
         dto.setContacts(contactDtos);
+
+        List<RegistrationDetail> regs = registrationDetailRepo.findAll();
+        List<RegistrationDetailDto> regDtos = regs.stream().map(r -> {
+            RegistrationDetailDto rd = new RegistrationDetailDto();
+            rd.setId(r.getId());
+            rd.setLicenseName(r.getLicenseName());
+            rd.setLicenseNumber(r.getLicenseNumber());
+            return rd;
+        }).collect(Collectors.toList());
+        dto.setRegistrations(regDtos);
 
         DocumentConfiguration estimate = docConfigRepo.findByDocumentType(DocumentType.ESTIMATE)
                 .orElse(new DocumentConfiguration());
@@ -66,6 +81,7 @@ public class SettingsService {
         CompanyProfile profile = companyProfileRepo.findAll().stream().findFirst().orElse(new CompanyProfile());
         profile.setCompanyName(dto.getCompanyName());
         profile.setBillingAddress(dto.getBillingAddress());
+        profile.setGstin(dto.getGstin());
         
         if (dto.getSignatureBase64() != null && !dto.getSignatureBase64().isEmpty()) {
             profile.setSignatureBase64(dto.getSignatureBase64());
@@ -86,6 +102,19 @@ public class SettingsService {
                     detail.setContactType(cDto.getContactType());
                     detail.setContactValue(cDto.getContactValue());
                     contactDetailRepo.save(detail);
+                }
+            }
+        }
+
+        registrationDetailRepo.deleteAll();
+        if (dto.getRegistrations() != null) {
+            for (RegistrationDetailDto rDto : dto.getRegistrations()) {
+                if(rDto.getLicenseName() != null && !rDto.getLicenseName().trim().isEmpty()) {
+                    RegistrationDetail detail = new RegistrationDetail();
+                    detail.setCompanyProfileEntity(profile);
+                    detail.setLicenseName(rDto.getLicenseName());
+                    detail.setLicenseNumber(rDto.getLicenseNumber());
+                    registrationDetailRepo.save(detail);
                 }
             }
         }

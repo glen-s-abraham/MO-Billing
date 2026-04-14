@@ -25,7 +25,7 @@ public class Buyer {
     private String shippingAddress;
 
     @Column(length = 50)
-    private String taxId;
+    private String gstin;
 
     @Column(length = 100)
     private String contactPerson;

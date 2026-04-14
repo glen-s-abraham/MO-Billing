@@ -39,6 +39,9 @@
                 <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab" aria-controls="contacts" aria-selected="false">Contact Details</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="registrations-tab" data-bs-toggle="tab" data-bs-target="#registrations" type="button" role="tab" aria-controls="registrations" aria-selected="false">Registrations</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="false">Document Configs</button>
             </li>
         </ul>
@@ -53,6 +56,10 @@
                         <div class="mb-3">
                             <label class="form-label">Company Name</label>
                             <input type="text" class="form-control" th:field="*{companyName}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">GSTIN</label>
+                            <input type="text" class="form-control" th:field="*{gstin}" placeholder="e.g. 29ABCDE1234F1Z5">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Billing Address</label>
@@ -137,7 +144,41 @@
                 </div>
             </div>
 
-            <!-- TAB 3: DOCUMENTS -->
+            <!-- TAB 3: REGISTRATIONS -->
+            <div class="tab-pane fade" id="registrations" role="tabpanel" aria-labelledby="registrations-tab">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0 text-primary">Licenses & Registrations</h5>
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill fw-bold" id="addRegistrationBtn">+ Add Registration</button>
+                </div>
+                
+                <div id="registrationsContainer">
+                    <div class="row align-items-center mb-3 registration-row template-registration-row d-none p-2 rounded" style="background-color: #f1f3f5;">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control registration-name-input" placeholder="e.g. FSSAI, MSME">
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control registration-val-input" placeholder="Registration No.">
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle remove-registration-btn shadow-sm"><i class="bi bi-x-lg"></i> X</button>
+                        </div>
+                    </div>
+                    
+                    <div class="row align-items-center mb-3 registration-row p-2 rounded" style="background-color: #f1f3f5;" th:each="reg, stat : *{registrations}">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" th:name="'registrations[' + ${stat.index} + '].licenseName'" th:value="${reg.licenseName}">
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control" th:name="'registrations[' + ${stat.index} + '].licenseNumber'" th:value="${reg.licenseNumber}">
+                        </div>
+                        <div class="col-md-1 text-end">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle remove-registration-btn shadow-sm">X</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DOCUMENTS -->
             <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
                 <div class="row">
                     <div class="col-md-6 mb-4">
@@ -249,6 +290,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.querySelector('input').name = 'contacts[' + idx + '].contactValue';
             });
             contactIndex = rows.length;
+        }
+    });
+
+    let registrationIndex = document.querySelectorAll('.registration-row:not(.template-registration-row)').length;
+    const addRegistrationBtn = document.getElementById('addRegistrationBtn');
+    const registrationsContainer = document.getElementById('registrationsContainer');
+
+    addRegistrationBtn.addEventListener('click', function() {
+        const template = document.querySelector('.template-registration-row').cloneNode(true);
+        template.classList.remove('template-registration-row', 'd-none');
+        
+        const nameInput = template.querySelector('.registration-name-input');
+        nameInput.name = 'registrations[' + registrationIndex + '].licenseName';
+        
+        const valInput = template.querySelector('.registration-val-input');
+        valInput.name = 'registrations[' + registrationIndex + '].licenseNumber';
+        
+        registrationsContainer.appendChild(template);
+        registrationIndex++;
+    });
+
+    registrationsContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-registration-btn') || e.target.closest('.remove-registration-btn')) {
+            e.target.closest('.registration-row').remove();
+            const rows = document.querySelectorAll('.registration-row:not(.template-registration-row)');
+            rows.forEach((row, idx) => {
+                row.querySelectorAll('input')[0].name = 'registrations[' + idx + '].licenseName';
+                row.querySelectorAll('input')[1].name = 'registrations[' + idx + '].licenseNumber';
+            });
+            registrationIndex = rows.length;
         }
     });
 

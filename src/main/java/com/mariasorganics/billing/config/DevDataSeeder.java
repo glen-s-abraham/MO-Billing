@@ -75,7 +75,7 @@ public class DevDataSeeder implements CommandLineRunner {
             b1.setName("Fresh Mart Supermarket");
             b1.setBillingAddress("45 Main Street, Ernakulam");
             b1.setShippingAddress("45 Main Street, Ernakulam");
-            b1.setTaxId("GSTIN23456789");
+            b1.setGstin("GSTIN23456789");
             b1.setPhone("+91 9876543210");
             buyerRepository.save(b1);
 

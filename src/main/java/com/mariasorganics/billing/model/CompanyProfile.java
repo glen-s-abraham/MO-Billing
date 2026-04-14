@@ -20,6 +20,9 @@ public class CompanyProfile {
     @Lob
     private String billingAddress;
 
+    @Column(length = 50)
+    private String gstin;
+
     private String logoFilePath;
 
     @Lob

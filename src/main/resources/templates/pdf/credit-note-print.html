@@ -14,9 +14,9 @@
         }
         body { font-family: Arial, sans-serif; color: #333; font-size: 12px; line-height: 1.5; }
         .header { width: 100%; border-bottom: 2px solid #dc3545; padding-bottom: 20px; display: block; overflow: hidden; }
-        .logo { max-height: 80px; float: left; }
-        .company-details { float: right; text-align: right; }
-        .company-details-no-logo { text-align: right; width: 100%; display: block; }
+        .logo { max-height: 80px; float: left; margin-right: 20px; }
+        .company-details { float: left; text-align: left; }
+        .company-details-no-logo { text-align: left; width: 100%; display: block; }
         .document-title { font-size: 24px; font-weight: bold; margin-top: 20px; text-transform: uppercase; color: #dc3545; }
         .meta-container { width: 100%; margin-top: 30px; display: block; height: 160px; }
         .bill-to { float: left; width: 50%; }
@@ -39,10 +39,22 @@
     <div class="header">
         <img th:if="${settings.logoFilePath != null}" th:src="${settings.logoFilePath}" class="logo" alt="Logo" />
         <div th:class="${settings.logoFilePath != null ? 'company-details' : 'company-details-no-logo'}">
-            <strong style="font-size: 18px;" th:text="${settings.companyName}">Company Name</strong><br/>
-            <span th:text="${settings.billingAddress}">Address</span><br/>
+            <strong th:if="${settings.companyName != null and !settings.companyName.isEmpty()}" style="font-size: 18px; display:block; margin-bottom: 2px;" th:text="${settings.companyName}">Company Name</strong>
+            <th:block th:if="${settings.billingAddress != null}">
+                <th:block th:each="line, stat : ${#strings.arraySplit(settings.billingAddress, ',')}">
+                    <div th:if="${!#strings.isEmpty(line.trim())}" style="line-height: 1.3;" th:text="${line.trim() + (stat.last ? '' : ',')}"></div>
+                </th:block>
+            </th:block>
             <th:block th:each="contact : ${settings.contacts}">
-                <span th:text="${contact.contactValue}"></span><br/>
+                <div style="line-height: 1.3;" th:text="${contact.contactValue}"></div>
+            </th:block>
+            <div th:if="${settings.gstin != null and !settings.gstin.isEmpty()}" style="line-height: 1.3;">
+                <strong>GSTIN:</strong> <span th:text="${settings.gstin}"></span>
+            </div>
+            <th:block th:each="reg : ${settings.registrations}">
+                <div style="line-height: 1.3;">
+                    <strong th:text="${reg.licenseName + ':'}"></strong> <span th:text="${reg.licenseNumber}"></span>
+                </div>
             </th:block>
         </div>
         <div style="clear: both;"></div>
@@ -52,10 +64,16 @@
 
     <div class="meta-container">
         <div class="bill-to" th:if="${creditNote.buyerEntity != null}">
-            <strong>Issued To:</strong><br/>
-            <strong th:text="${creditNote.buyerEntity.name}">Buyer Name</strong><br/>
-            <span th:text="${creditNote.buyerEntity.billingAddress}">Buyer Address</span><br/>
-            <span th:if="${creditNote.buyerEntity.taxId != null and !creditNote.buyerEntity.taxId.isEmpty()}">Tax ID: <span th:text="${creditNote.buyerEntity.taxId}"></span></span>
+            <strong>Issued To:</strong>
+            <strong style="display:block; margin-top:2px; margin-bottom:2px;" th:text="${creditNote.buyerEntity.name}">Buyer Name</strong>
+            <th:block th:if="${creditNote.buyerEntity.billingAddress != null}">
+                <th:block th:each="line, stat : ${#strings.arraySplit(creditNote.buyerEntity.billingAddress, ',')}">
+                    <div th:if="${!#strings.isEmpty(line.trim())}" style="line-height: 1.3;" th:text="${line.trim() + (stat.last ? '' : ',')}"></div>
+                </th:block>
+            </th:block>
+            <div style="line-height: 1.3; margin-top: 2px;" th:if="${creditNote.buyerEntity.gstin != null and !creditNote.buyerEntity.gstin.isEmpty()}">
+                GSTIN: <span th:text="${creditNote.buyerEntity.gstin}"></span>
+            </div>
         </div>
         <div class="doc-meta">
             <strong>Credit Note #:</strong> <span th:text="${creditNote.creditNoteNumber}"></span><br/>
@@ -65,10 +83,11 @@
                 <strong style="color:#dc3545;">Linked Sales Estimate #:</strong><br/>
                 <span th:text="${creditNote.linkedEstimateEntity.estimateNumber}"></span>
             </th:block>
+            <h2 style="color: red; margin-top: 10px;" th:if="${creditNote.status != null and creditNote.status.name() == 'VOID'}">[VOID]</h2>
         </div>
         <div style="clear: both;"></div>
         
-        <div class="reason-box">
+        <div class="reason-box" th:if="${creditNote.reasonText != null and !creditNote.reasonText.isEmpty()}">
             <strong>Reason for Credit:</strong> <span th:text="${creditNote.reasonText}"></span>
         </div>
     </div>
@@ -108,10 +127,12 @@
     </div>
 
     <div class="footer-section">
-        <strong>Notes:</strong>
-        <p th:text="${settings.creditNoteTerms}"></p>
+        <th:block th:if="${settings.creditNoteTerms != null and !settings.creditNoteTerms.isEmpty()}">
+            <strong>Notes:</strong>
+            <p th:text="${settings.creditNoteTerms}"></p>
+        </th:block>
         
-        <div style="margin-top: 15px; color:#555;">
+        <div style="margin-top: 15px; color:#555;" th:if="${settings.creditNoteFooter != null and !settings.creditNoteFooter.isEmpty()}">
             <p th:text="${settings.creditNoteFooter}"></p>
         </div>
     </div>

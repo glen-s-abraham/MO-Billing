@@ -30,7 +30,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Name</th>
-                        <th>Tax ID</th>
+                        <th>GSTIN</th>
                         <th>Contact Person</th>
                         <th>Email</th>
                         <th>Phone</th>
@@ -41,7 +41,7 @@
                 <tbody>
                     <tr th:each="buyer : ${buyers}">
                         <td class="fw-bold" th:text="${buyer.name}"></td>
-                        <td th:text="${buyer.taxId}"></td>
+                        <td th:text="${buyer.gstin}"></td>
                         <td th:text="${buyer.contactPerson}"></td>
                         <td th:text="${buyer.email}"></td>
                         <td th:text="${buyer.phone}"></td>
