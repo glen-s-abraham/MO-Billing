@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
+@Table(name = "bill_contact_details")
 @Data
 @NoArgsConstructor
 public class ContactDetail {

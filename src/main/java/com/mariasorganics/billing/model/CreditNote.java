@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "bill_credit_notes")
 @Data
 @NoArgsConstructor
 public class CreditNote {

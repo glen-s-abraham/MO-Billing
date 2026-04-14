@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "bill_buyers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

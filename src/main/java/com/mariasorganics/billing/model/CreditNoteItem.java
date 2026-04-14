@@ -10,6 +10,7 @@ import lombok.ToString;
 import java.math.BigDecimal;
 
 @Entity
+@Table(name = "bill_credit_note_items")
 @Data
 @NoArgsConstructor
 public class CreditNoteItem {

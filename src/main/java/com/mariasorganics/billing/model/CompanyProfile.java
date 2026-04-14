@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "bill_company_profiles")
 @Data
 @NoArgsConstructor
 public class CompanyProfile {

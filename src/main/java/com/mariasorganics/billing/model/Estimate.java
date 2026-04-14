@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "bill_estimates")
 @Data
 @NoArgsConstructor
 public class Estimate {

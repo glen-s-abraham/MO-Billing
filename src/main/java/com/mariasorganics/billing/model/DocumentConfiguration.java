@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "bill_document_configs")
 @Data
 @NoArgsConstructor
 public class DocumentConfiguration {
