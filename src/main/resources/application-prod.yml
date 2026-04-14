@@ -6,6 +6,8 @@ spring:
     driverClassName: org.postgresql.Driver
     username: root
     password: root
+    hikari:
+      auto-commit: false
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
