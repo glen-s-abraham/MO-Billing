@@ -1,17 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buyers - MO-Billing</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <th:block th:replace="~{fragments :: common_head('Buyers')}"></th:block>
     <th:block th:replace="~{fragments :: datatables-css}"></th:block>
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
-    </style>
 </head>
 <body>
 <div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: bottom_nav}"></div>
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -40,17 +35,17 @@
                 </thead>
                 <tbody>
                     <tr th:each="buyer : ${buyers}">
-                        <td class="fw-bold" th:text="${buyer.name}"></td>
-                        <td th:text="${buyer.gstin}"></td>
-                        <td th:text="${buyer.contactPerson}"></td>
-                        <td th:text="${buyer.email}"></td>
-                        <td th:text="${buyer.phone}"></td>
-                        <td>
+                        <td data-label="Name" class="fw-bold" th:text="${buyer.name}"></td>
+                        <td data-label="GSTIN" th:text="${buyer.gstin}"></td>
+                        <td data-label="Contact Person" th:text="${buyer.contactPerson}"></td>
+                        <td data-label="Email" th:text="${buyer.email}"></td>
+                        <td data-label="Phone" th:text="${buyer.phone}"></td>
+                        <td data-label="Status">
                             <span th:if="${buyer.isActive}" class="badge bg-success">Active</span>
                             <span th:unless="${buyer.isActive}" class="badge bg-danger">Inactive</span>
                         </td>
-                        <td>
-                            <a th:href="@{/buyers/{id}/edit(id=${buyer.id})}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <td data-label="Actions">
+                            <a th:href="@{/buyers/{id}/edit(id=${buyer.id})}" class="btn btn-sm btn-primary shadow-sm"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
                         </td>
                     </tr>
                 </tbody>

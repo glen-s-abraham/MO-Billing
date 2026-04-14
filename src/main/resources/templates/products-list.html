@@ -1,17 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products - MO-Billing</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <th:block th:replace="~{fragments :: common_head('Products')}"></th:block>
     <th:block th:replace="~{fragments :: datatables-css}"></th:block>
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
-    </style>
 </head>
 <body>
 <div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: bottom_nav}"></div>
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -39,16 +34,16 @@
                 </thead>
                 <tbody>
                     <tr th:each="product : ${products}">
-                        <td class="fw-bold" th:text="${product.title}"></td>
-                        <td th:text="${product.uom}"></td>
-                        <td th:text="${#numbers.formatDecimal(product.supplyRate, 1, 2)}"></td>
-                        <td th:text="${#numbers.formatDecimal(product.mrp, 1, 2)}"></td>
-                        <td>
+                        <td data-label="Title" class="fw-bold" th:text="${product.title}"></td>
+                        <td data-label="UOM" th:text="${product.uom}"></td>
+                        <td data-label="Supply Rate" th:text="${#numbers.formatDecimal(product.supplyRate, 1, 2)}"></td>
+                        <td data-label="Retail Price (MRP)" th:text="${#numbers.formatDecimal(product.mrp, 1, 2)}"></td>
+                        <td data-label="Status">
                             <span th:if="${product.isActive}" class="badge bg-success">Active</span>
                             <span th:unless="${product.isActive}" class="badge bg-danger">Inactive</span>
                         </td>
-                        <td>
-                            <a th:href="@{/products/{id}/edit(id=${product.id})}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <td data-label="Actions">
+                            <a th:href="@{/products/{id}/edit(id=${product.id})}" class="btn btn-sm btn-primary shadow-sm"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
                         </td>
                     </tr>
                 </tbody>

@@ -4,10 +4,51 @@
 </head>
 <body>
 
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+<th:block th:fragment="common_head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title th:text="${title} + ' - MO-Billing'">MO-Billing</title>
+    <title th:text="${title} + ' - MO-Billing'">MO-Billing</title>
+    <!-- Theme Engine Script -->
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+        document.addEventListener('DOMContentLoaded', () => {
+            const updateIcons = (theme) => {
+                document.querySelectorAll('.theme-toggle i').forEach(icon => {
+                    icon.className = theme === 'dark' ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars-fill text-secondary';
+                });
+            };
+            updateIcons(document.documentElement.getAttribute('data-theme'));
+            document.querySelectorAll('.theme-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    let next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                    updateIcons(next);
+                });
+            });
+        });
+    </script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</th:block>
+
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-light sticky-top mb-4">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/">🚀 MO-Billing</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand fw-bolder fs-4" href="/"> <i class="bi bi-rocket-takeoff text-primary"></i> MO-Billing</a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
@@ -28,9 +69,37 @@
                     <a class="nav-link" th:classappend="${requestURI != null and requestURI == '/settings' ? 'active' : ''}" href="/settings">Settings</a>
                 </li>
             </ul>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-sm btn-outline-secondary theme-toggle rounded-circle ms-2" type="button" aria-label="Toggle Theme" style="width: 38px; height: 38px;">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </button>
+            </div>
         </div>
     </div>
 </nav>
+
+<div th:fragment="bottom_nav" class="bottom-app-bar d-md-none">
+    <a href="/estimates" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/estimates') ? 'active' : ''}">
+        <i class="bi bi-file-earmark-text"></i>
+        <span>Estimates</span>
+    </a>
+    <a href="/credit-notes" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/credit-notes') ? 'active' : ''}">
+        <i class="bi bi-arrow-return-left"></i>
+        <span>Credits</span>
+    </a>
+    <a href="/buyers" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/buyers') ? 'active' : ''}">
+        <i class="bi bi-people"></i>
+        <span>Buyers</span>
+    </a>
+    <a href="/products" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/products') ? 'active' : ''}">
+        <i class="bi bi-box-seam"></i>
+        <span>Products</span>
+    </a>
+    <!-- <a href="#" class="nav-item theme-toggle">
+        <i class="bi bi-moon-stars-fill"></i>
+        <span>Theme</span>
+    </a> -->
+</div>
 
 <th:block th:fragment="datatables-css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">

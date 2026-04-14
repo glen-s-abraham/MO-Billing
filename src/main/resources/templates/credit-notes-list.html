@@ -1,18 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Notes - MO-Billing</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <th:block th:replace="~{fragments :: common_head('Credit Notes')}"></th:block>
     <th:block th:replace="~{fragments :: datatables-css}"></th:block>
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
-    </style>
 </head>
 <body>
 <div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: bottom_nav}"></div>
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -41,20 +35,20 @@
                 </thead>
                 <tbody>
                     <tr th:each="crn : ${creditNotes}">
-                        <td class="fw-bold text-danger" th:text="${crn.creditNoteNumber}"></td>
-                        <td th:text="${#temporals.format(crn.issueDate, 'dd-MMM-yyyy')}"></td>
-                        <td th:text="${crn.buyerEntity != null ? crn.buyerEntity.name : 'Unknown'}"></td>
-                        <td th:text="${crn.linkedEstimateEntity != null ? crn.linkedEstimateEntity.estimateNumber : '-'}"></td>
-                        <td class="text-danger fw-bold" th:text="${'-₹ ' + #numbers.formatDecimal(crn.totalCredit, 1, 2)}"></td>
-                        <td>
-                            <span class="badge" th:classappend="${crn.status.name() == 'VOID' ? 'bg-danger text-white text-decoration-line-through' : (crn.status.name() == 'ISSUED' ? 'bg-success' : 'bg-secondary')}" th:text="${crn.status}"></span>
+                        <td data-label="Doc #" class="fw-bold text-danger" th:text="${crn.creditNoteNumber}"></td>
+                        <td data-label="Date" th:text="${#temporals.format(crn.issueDate, 'dd-MMM-yyyy')}"></td>
+                        <td data-label="Buyer" th:text="${crn.buyerEntity != null ? crn.buyerEntity.name : 'Unknown'}"></td>
+                        <td data-label="Linked Estimate" th:text="${crn.linkedEstimateEntity != null ? crn.linkedEstimateEntity.estimateNumber : '-'}"></td>
+                        <td data-label="Total Credit" class="text-danger fw-bold" th:text="${'-₹ ' + #numbers.formatDecimal(crn.totalCredit, 1, 2)}"></td>
+                        <td data-label="Status">
+                            <span class="badge" th:classappend="${crn.status.name() == 'VOID' ? 'bg-danger text-white' : (crn.status.name() == 'ISSUED' ? 'bg-success' : 'bg-secondary')}" th:text="${crn.status}"></span>
                         </td>
-                        <td>
+                        <td data-label="Actions">
+                            <a th:href="@{/credit-notes/{id}/edit(id=${crn.id})}" class="btn btn-sm btn-primary shadow-sm" th:if="${crn.status != null and crn.status.name() != 'VOID'}"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
+                            <a th:href="@{/credit-notes/{id}/pdf(id=${crn.id})}" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="bi bi-file-pdf"></i> PDF</a>
                             <form th:action="@{/credit-notes/{id}/void(id=${crn.id})}" method="post" class="d-inline" th:if="${crn.status != null and crn.status.name() != 'VOID'}">
-                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to void this credit note?');"><i class="bi bi-x-octagon"></i> Void</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm" onclick="return confirm('Are you sure you want to void this credit note?');"><i class="bi bi-x-octagon"></i><span class="d-none d-md-inline"> Void</span></button>
                             </form>
-                            <a th:href="@{/credit-notes/{id}/edit(id=${crn.id})}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                            <a th:href="@{/credit-notes/{id}/pdf(id=${crn.id})}" class="btn btn-sm btn-danger"><i class="bi bi-file-pdf"></i> PDF</a>
                         </td>
                     </tr>
                 </tbody>
