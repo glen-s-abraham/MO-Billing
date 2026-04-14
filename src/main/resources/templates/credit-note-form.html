@@ -142,9 +142,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const linkSelect = document.getElementById('linkEstimateSelect');
     const buyerSelect = document.getElementById('buyerSelect');
 
-    new TomSelect("#linkEstimateSelect", {
+    const tsLinkSelect = new TomSelect("#linkEstimateSelect", {
         create: false,
-        placeholder: "-- No linked Estimate --"
+        placeholder: "-- No linked Estimate --",
+        onItemAdd: function() {
+            this.blur();
+        }
     });
 
     function calculateRow(row) {

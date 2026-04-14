@@ -13,4 +13,4 @@ app:
 server:
   servlet:
     session:
-      timeout: 30m
+      timeout: 7d

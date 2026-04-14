@@ -81,9 +81,10 @@
         </div>
         <div class="doc-meta">
             <strong>Estimate #:</strong> <span th:text="${estimate.estimateNumber}"></span><br/>
-            <strong>Date:</strong> <span th:text="${#temporals.format(estimate.estimateDate, 'dd MMM yyyy')}"></span><br/>
-            <strong>Status:</strong> <span th:text="${estimate.status}"></span>
-            <h2 style="color: red; margin-top: 10px;" th:if="${estimate.status.name() == 'CANCELLED' or estimate.status.name() == 'REJECTED'}" th:text="${'[' + estimate.status + ']'}"></h2>
+            <strong>Date:</strong> <span th:text="${#temporals.format(estimate.estimateDate, 'dd MMM yyyy')}"></span>
+            <div th:if="${estimate.status.name() == 'CANCELLED' or estimate.status.name() == 'REJECTED'}" style="color: red; margin-top: 10px; font-weight: bold; font-size: 18px; text-transform: uppercase;">
+                [<span th:text="${estimate.status}"></span>]
+            </div>
         </div>
     </div>
 

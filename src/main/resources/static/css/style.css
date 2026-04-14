@@ -223,6 +223,16 @@ body {
         display: none;
     }
     
+    .table-responsive .datatable tbody td.dataTables_empty {
+        display: block;
+        text-align: center !important;
+        padding: 2rem 0;
+        border-bottom: none;
+    }
+    .table-responsive .datatable tbody td.dataTables_empty::before {
+        display: none;
+    }
+    
     /* Datatables alignment overrides for mobile */
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter,

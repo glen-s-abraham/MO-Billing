@@ -29,35 +29,36 @@ public class SuperUserCreator implements CommandLineRunner {
     }
 
     private void createSuperUser() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("\n--- Super User Creation Utility ---");
-        
-        System.out.print("Enter Username: ");
-        String username = scanner.nextLine().trim();
-        
-        if (userRepository.findByUsername(username).isPresent()) {
-            System.err.println("Error: User already exists!");
-            return;
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.println("\n--- Super User Creation Utility ---");
+            
+            System.out.print("Enter Username: ");
+            String username = scanner.nextLine().trim();
+            
+            if (userRepository.findByUsername(username).isPresent()) {
+                System.err.println("Error: User already exists!");
+                return;
+            }
+
+            System.out.print("Enter Password: ");
+            String password = scanner.nextLine().trim();
+
+            System.out.print("Assign Role (ADMIN/EMPLOYEE) [ADMIN]: ");
+            String roleInput = scanner.nextLine().trim().toUpperCase();
+            Role role = Role.ROLE_ADMIN;
+            if ("EMPLOYEE".equals(roleInput)) {
+                role = Role.ROLE_EMPLOYEE;
+            }
+
+            User user = User.builder()
+                    .username(username)
+                    .password(passwordEncoder.encode(password))
+                    .role(role)
+                    .isActive(true)
+                    .build();
+
+            userRepository.save(user);
+            System.out.println("\nSUCCESS: User '" + username + "' created with role " + role);
         }
-
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine().trim();
-
-        System.out.print("Assign Role (ADMIN/EMPLOYEE) [ADMIN]: ");
-        String roleInput = scanner.nextLine().trim().toUpperCase();
-        Role role = Role.ROLE_ADMIN;
-        if ("EMPLOYEE".equals(roleInput)) {
-            role = Role.ROLE_EMPLOYEE;
-        }
-
-        User user = User.builder()
-                .username(username)
-                .password(passwordEncoder.encode(password))
-                .role(role)
-                .isActive(true)
-                .build();
-
-        userRepository.save(user);
-        System.out.println("\nSUCCESS: User '" + username + "' created with role " + role);
     }
 }
