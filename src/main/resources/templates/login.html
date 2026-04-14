@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login - MO-Billing</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-body), var(--bg-slate));
+            margin: 0;
+            overflow: hidden;
+        }
+        .login-card {
+            max-width: 400px;
+            width: 90%;
+            background: var(--nav-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .login-logo {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body data-theme="light"> <!-- Default to light, JS will handle auto-detect -->
+    
+    <div class="login-card">
+        <div class="login-logo">
+            <i class="bi bi-rocket-takeoff"></i>
+            <div class="fw-bold fs-3 mt-2">MO-Billing</div>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger py-2 small mb-4 text-center border-0 shadow-sm rounded-pill" role="alert">
+            Invalid username or password.
+        </div>
+        
+        <div th:if="${param.logout}" class="alert alert-success py-2 small mb-4 text-center border-0 shadow-sm rounded-pill" role="alert">
+            You have been logged out.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="mb-4">
+                <label for="username" class="form-label small fw-bold text-muted px-1">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                    <input type="text" id="username" name="username" class="form-control border-start-0" placeholder="Enter your username" required autofocus>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="form-label small fw-bold text-muted px-1">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                    <input type="password" id="password" name="password" class="form-control border-start-0" placeholder="Enter your password" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100 py-3 mt-2 shadow-lg">
+                Sign In <i class="bi bi-arrow-right ms-2"></i>
+            </button>
+        </form>
+    </div>
+</body>
+</html>

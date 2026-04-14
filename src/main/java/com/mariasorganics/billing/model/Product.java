@@ -3,6 +3,8 @@ package com.mariasorganics.billing.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,8 @@ import java.math.BigDecimal;
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +34,7 @@ public class Product {
     @NotNull
     private BigDecimal mrp;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 }

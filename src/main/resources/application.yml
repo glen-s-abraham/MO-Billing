@@ -9,3 +9,8 @@ spring:
 app:
   upload:
     dir: ./uploads/
+
+server:
+  servlet:
+    session:
+      timeout: 30m

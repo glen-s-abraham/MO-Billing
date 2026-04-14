@@ -3,12 +3,16 @@ package com.mariasorganics.billing.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Buyer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +40,7 @@ public class Buyer {
     @Column(length = 20)
     private String phone;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 }
