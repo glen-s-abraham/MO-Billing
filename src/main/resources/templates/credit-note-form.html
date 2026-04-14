@@ -290,6 +290,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateRowIndexes() {
         const rows = document.querySelectorAll('.item-row:not(.template-row)');
         rows.forEach((row, idx) => {
+            row.querySelector('.product-select').name = 'items[' + idx + '].productEntity';
+            row.querySelector('.qty-input').name = 'items[' + idx + '].returnQuantity';
+            row.querySelector('.rate-input').name = 'items[' + idx + '].rate';
             row.querySelector('.tax-enabled-check').name = 'items[' + idx + '].taxEnabled';
             row.querySelector('.tax-enabled-check').value = 'true';
             if (row.querySelector('.tax-enabled-hidden')) {
@@ -313,7 +316,6 @@ document.addEventListener('DOMContentLoaded', function() {
         template.querySelector('.rate-input').value = rate;
         const check = template.querySelector('.tax-enabled-check');
         check.checked = taxEnabled;
-        check.name = 'items[' + idx + '].taxEnabled'; // idx might be unknown here, wait
         template.querySelector('.row-is-inclusive').value = taxInclusive;
         
         const store = template.querySelector('.row-tax-data-store');
