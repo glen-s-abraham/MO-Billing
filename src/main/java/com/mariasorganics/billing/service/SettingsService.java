@@ -30,6 +30,7 @@ public class SettingsService {
     private final DocumentConfigurationRepository docConfigRepo;
     private final FileStorageService fileStorageService;
 
+    @Transactional(readOnly = true)
     public SettingsFormDto getSettings() {
         SettingsFormDto dto = new SettingsFormDto();
 
