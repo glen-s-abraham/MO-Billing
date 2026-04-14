@@ -23,7 +23,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <form th:action="@{/settings/save}" th:object="${settingsForm}" method="post" enctype="multipart/form-data">
+    <form id="settingsForm" th:action="@{/settings/save}" th:object="${settingsForm}" method="post" enctype="multipart/form-data">
         
         <input type="hidden" th:field="*{logoFilePath}">
         
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.querySelector('form').addEventListener('submit', function(e) {
+    document.getElementById('settingsForm').addEventListener('submit', function(e) {
         if (!signaturePad.isEmpty()) {
             const dataUrl = signaturePad.toDataURL('image/png');
             document.getElementById('signatureBase64').value = dataUrl;

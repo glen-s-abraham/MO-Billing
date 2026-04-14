@@ -1,0 +1,39 @@
+name: Build and Deploy Billing App
+
+on:
+  workflow_dispatch: 
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:         
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Profile to Prod in application.yml
+        run: |
+          # Searches for the active profile line and replaces 'dev' with 'prod'
+          sed -i 's/active: dev/active: prod/' src/main/resources/application.yml
+          
+          # Prints the updated line to your GitHub Action logs so you can verify it worked
+          grep -A 1 'profiles:' src/main/resources/application.yml
+
+      - name: Build with Maven
+        # Uses the Maven installation already on your server.
+        run: mvn clean package -DskipTests
+
+      - name: Copy Jar to Deployment Folder
+        run: |
+          sudo mkdir -p /opt/billing
+          sudo cp target/billing-0.0.1-SNAPSHOT.jar /opt/billing/billing-0.0.1-SNAPSHOT.jar
+
+      - name: Restart Service
+        run: |
+          sudo systemctl restart billing.service
+          
+      - name: Check Status
+        run: |
+          systemctl status billing.service --no-pager
