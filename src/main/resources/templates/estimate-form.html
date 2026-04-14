@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tbody = document.getElementById('itemsTbody');
     const grandTotalSpan = document.getElementById('grandTotalText');
 
-    new TomSelect("#buyerSelect", {
+    const tsBuyerSelect = new TomSelect("#buyerSelect", {
         create: false,
         placeholder: "-- Select Buyer --",
         onItemAdd: function() {
