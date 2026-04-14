@@ -117,6 +117,31 @@ public class CreditNoteController {
         }
         context.setVariable("settings", settings);
         
+        java.util.Map<String, java.math.BigDecimal> taxBreakdown = new java.util.HashMap<>();
+        java.math.BigDecimal subtotalBase = java.math.BigDecimal.ZERO;
+        
+        for (CreditNoteItem item : creditNote.getItems()) {
+            java.math.BigDecimal totalTaxRate = java.math.BigDecimal.ZERO;
+            for (CreditNoteItemTax itax : item.getTaxes()) {
+                totalTaxRate = totalTaxRate.add(itax.getTaxPercentage());
+            }
+
+            java.math.BigDecimal lineBase;
+            if (item.isTaxInclusive()) {
+                lineBase = item.getRowTotal().divide(java.math.BigDecimal.ONE.add(totalTaxRate.divide(new java.math.BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+            } else {
+                lineBase = item.getReturnQuantity().multiply(item.getRate());
+            }
+            subtotalBase = subtotalBase.add(lineBase);
+
+            for (CreditNoteItemTax itax : item.getTaxes()) {
+                java.math.BigDecimal amount = lineBase.multiply(itax.getTaxPercentage().divide(new java.math.BigDecimal("100")));
+                taxBreakdown.put(itax.getTaxName(), taxBreakdown.getOrDefault(itax.getTaxName(), java.math.BigDecimal.ZERO).add(amount));
+            }
+        }
+        context.setVariable("taxBreakdown", taxBreakdown);
+        context.setVariable("subtotalBase", subtotalBase);
+        
         String htmlContent = templateEngine.process("pdf/credit-note-print", context);
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         

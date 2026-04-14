@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "bill_credit_note_items")
@@ -37,4 +39,15 @@ public class CreditNoteItem {
 
     @NotNull
     private BigDecimal rowTotal = BigDecimal.ZERO;
+
+    private boolean isTaxInclusive = false;
+
+    @OneToMany(mappedBy = "creditNoteItemEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<CreditNoteItemTax> taxes = new ArrayList<>();
+
+    public void addTax(CreditNoteItemTax tax) {
+        taxes.add(tax);
+        tax.setCreditNoteItemEntity(this);
+    }
 }

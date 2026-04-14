@@ -25,6 +25,9 @@ public class ProductService {
     }
 
     public Product saveProduct(Product product) {
+        if (product.getTaxes() != null) {
+            product.getTaxes().forEach(tax -> tax.setProductEntity(product));
+        }
         return productRepository.save(product);
     }
 }

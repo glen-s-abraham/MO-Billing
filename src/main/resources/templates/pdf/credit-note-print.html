@@ -118,6 +118,14 @@
 
     <div class="totals">
         <table class="totals-table">
+            <tr>
+                <td>Subtotal (Base Return):</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(subtotalBase, 1, 2)}"></td>
+            </tr>
+            <tr th:each="entry : ${taxBreakdown}">
+                <td th:text="${entry.key + ':'}">GST:</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(entry.value, 1, 2)}">0.00</td>
+            </tr>
             <tr class="grand-total">
                 <td>Total Credit (INR):</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(creditNote.totalCredit, 1, 2)}"></td>

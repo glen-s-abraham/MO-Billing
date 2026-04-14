@@ -116,6 +116,14 @@
 
     <div class="totals">
         <table class="totals-table">
+            <tr>
+                <td>Subtotal (Base):</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(subtotalBase, 1, 2)}"></td>
+            </tr>
+            <tr th:each="entry : ${taxBreakdown}">
+                <td th:text="${entry.key + ':'}">GST:</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(entry.value, 1, 2)}">0.00</td>
+            </tr>
             <tr class="grand-total">
                 <td>Grand Total (INR):</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(estimate.totalAmount, 1, 2)}"></td>

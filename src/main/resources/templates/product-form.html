@@ -54,16 +54,103 @@
             <div class="form-check form-switch mt-3 mb-4">
                 <input class="form-check-input" type="checkbox" role="switch" th:field="*{isActive}" id="activeSwitch">
                 <label class="form-check-label fw-bold" for="activeSwitch">Is Currently Available?</label>
-                <div class="form-text">If disabled, this product will not be selectable when creating new invoices, preventing use of discontinued items.</div>
+                <div class="form-text">If disabled, this product will not be selectable when creating new invoices.</div>
+            </div>
+
+            <!-- Tax Configuration Section -->
+            <div class="card bg-light border-0 mb-4 rounded-4 overflow-hidden">
+                <div class="card-header bg-secondary bg-opacity-10 py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-percent me-2"></i>Tax Configuration</h6>
+                    <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" id="addTaxBtn">+ Add Tax</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" th:field="*{taxInclusive}" id="taxInclusiveSwitch">
+                        <label class="form-check-label fw-bold text-dark" for="taxInclusiveSwitch">Price includes all Taxes?</label>
+                        <div class="small text-muted">If enabled, the Supply Rate entered above will be split into Base + Taxes on invoices.</div>
+                    </div>
+
+                    <div id="taxesContainer">
+                        <div th:each="tax, stat : *{taxes}" class="tax-row row g-2 mb-2 align-items-center">
+                            <input type="hidden" th:field="*{taxes[__${stat.index}__].id}">
+                            <div class="col-7">
+                                <input type="text" class="form-control form-control-sm" th:field="*{taxes[__${stat.index}__].taxName}" placeholder="Tax Name (e.g. VAT)" required>
+                            </div>
+                            <div class="col-4">
+                                <div class="input-group input-group-sm">
+                                    <input type="number" step="0.01" class="form-control" th:field="*{taxes[__${stat.index}__].taxPercentage}" placeholder="%" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-1">
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0 remove-tax-btn"><i class="bi bi-x-circle-fill"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${#lists.isEmpty(product.taxes)}" id="noTaxesMsg" class="small text-center text-muted py-2">
+                        No taxes configured for this product.
+                    </div>
+                </div>
             </div>
 
             <div class="text-end border-top pt-3">
-                <button type="submit" class="btn btn-primary fw-bold px-4">Save Product</button>
+                <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm">Save Product</button>
             </div>
         </form>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('taxesContainer');
+        const addBtn = document.getElementById('addTaxBtn');
+        const noMsg = document.getElementById('noTaxesMsg');
+
+        function updateIndexes() {
+            const rows = container.querySelectorAll('.tax-row');
+            rows.forEach((row, idx) => {
+                row.querySelectorAll('input').forEach(input => {
+                    const name = input.name;
+                    if (name) {
+                        input.name = name.replace(/\[\d+\]/, '[' + idx + ']');
+                        input.id = input.id.replace(/_\d+_/, '_' + idx + '_');
+                    }
+                });
+            });
+            if (noMsg) noMsg.style.display = rows.length > 0 ? 'none' : 'block';
+        }
+
+        addBtn.addEventListener('click', function() {
+            const index = container.querySelectorAll('.tax-row').length;
+            const newRow = document.createElement('div');
+            newRow.className = 'tax-row row g-2 mb-2 align-items-center';
+            newRow.innerHTML = `
+                <div class="col-7">
+                    <input type="text" name="taxes[${index}].taxName" class="form-control form-control-sm" placeholder="Tax Name" required>
+                </div>
+                <div class="col-4">
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="0.01" name="taxes[${index}].taxPercentage" class="form-control" placeholder="%" required>
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+                <div class="col-1">
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0 remove-tax-btn"><i class="bi bi-x-circle-fill"></i></button>
+                </div>
+            `;
+            container.appendChild(newRow);
+            updateIndexes();
+        });
+
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-tax-btn')) {
+                e.target.closest('.tax-row').remove();
+                updateIndexes();
+            }
+        });
+    });
+</script>
 </body>
 </html>

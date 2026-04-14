@@ -31,7 +31,11 @@ public class EstimateRestController {
                 item.getProductEntity().getTitle(),
                 item.getProductEntity().getUom(),
                 item.getQuantity(),
-                item.getRate()))
+                item.getRate(),
+                item.isTaxInclusive(),
+                item.getTaxes().stream()
+                    .map(t -> new TaxDto(t.getTaxName(), t.getTaxPercentage()))
+                    .collect(Collectors.toList())))
             .collect(Collectors.toList());
 
         Long buyerId = est.getBuyerEntity() != null ? est.getBuyerEntity().getId() : null;
@@ -57,5 +61,14 @@ public class EstimateRestController {
         private String productUom;
         private BigDecimal quantity;
         private BigDecimal rate;
+        private boolean taxInclusive;
+        private List<TaxDto> taxes;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class TaxDto {
+        private String taxName;
+        private BigDecimal taxPercentage;
     }
 }

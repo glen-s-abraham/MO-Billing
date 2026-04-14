@@ -7,8 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "bill_products")
@@ -38,4 +41,17 @@ public class Product {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Builder.Default
+    private boolean isTaxInclusive = false;
+
+    @OneToMany(mappedBy = "productEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<ProductTax> taxes = new ArrayList<>();
+
+    public void addTax(ProductTax tax) {
+        taxes.add(tax);
+        tax.setProductEntity(this);
+    }
 }

@@ -109,6 +109,31 @@ public class EstimateController {
         }
         context.setVariable("settings", settings);
         
+        java.util.Map<String, java.math.BigDecimal> taxBreakdown = new java.util.HashMap<>();
+        java.math.BigDecimal subtotalBase = java.math.BigDecimal.ZERO;
+        
+        for (EstimateItem item : estimate.getItems()) {
+            java.math.BigDecimal totalTaxRate = java.math.BigDecimal.ZERO;
+            for (EstimateItemTax itax : item.getTaxes()) {
+                totalTaxRate = totalTaxRate.add(itax.getTaxPercentage());
+            }
+
+            java.math.BigDecimal lineBase;
+            if (item.isTaxInclusive()) {
+                lineBase = item.getRowTotal().divide(java.math.BigDecimal.ONE.add(totalTaxRate.divide(new java.math.BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+            } else {
+                lineBase = item.getQuantity().multiply(item.getRate());
+            }
+            subtotalBase = subtotalBase.add(lineBase);
+
+            for (EstimateItemTax itax : item.getTaxes()) {
+                java.math.BigDecimal amount = lineBase.multiply(itax.getTaxPercentage().divide(new java.math.BigDecimal("100")));
+                taxBreakdown.put(itax.getTaxName(), taxBreakdown.getOrDefault(itax.getTaxName(), java.math.BigDecimal.ZERO).add(amount));
+            }
+        }
+        context.setVariable("taxBreakdown", taxBreakdown);
+        context.setVariable("subtotalBase", subtotalBase);
+        
         String htmlContent = templateEngine.process("pdf/estimate-print", context);
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
         

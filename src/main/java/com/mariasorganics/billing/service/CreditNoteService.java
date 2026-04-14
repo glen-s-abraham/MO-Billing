@@ -33,10 +33,48 @@ public class CreditNoteService {
         BigDecimal grandTotal = BigDecimal.ZERO;
         if (creditNote.getItems() != null) {
             for (CreditNoteItem item : creditNote.getItems()) {
-                if(item.getReturnQuantity() != null && item.getRate() != null) {
-                    BigDecimal rowTotal = item.getReturnQuantity().multiply(item.getRate());
-                    item.setRowTotal(rowTotal);
-                    grandTotal = grandTotal.add(rowTotal);
+                if (item.getProductEntity() != null && item.getReturnQuantity() != null && item.getRate() != null) {
+                    Product product = item.getProductEntity();
+                    
+                    // Clear existing snapshots
+                    if (item.getTaxes() != null) {
+                        item.getTaxes().clear();
+                    }
+
+                    BigDecimal totalTaxRate = BigDecimal.ZERO;
+                    if (product.getTaxes() != null) {
+                        for (ProductTax pTax : product.getTaxes()) {
+                            totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
+                            
+                            // Create snapshot
+                            CreditNoteItemTax snapshot = CreditNoteItemTax.builder()
+                                    .taxName(pTax.getTaxName())
+                                    .taxPercentage(pTax.getTaxPercentage())
+                                    .creditNoteItemEntity(item)
+                                    .taxAmount(BigDecimal.ZERO)
+                                    .build();
+                            item.addTax(snapshot);
+                        }
+                    }
+
+                    BigDecimal lineBaseTotal;
+                    BigDecimal lineGrandTotal;
+                    
+                    if (item.isTaxInclusive()) {
+                        lineGrandTotal = item.getReturnQuantity().multiply(item.getRate());
+                        lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+                    } else {
+                        lineBaseTotal = item.getReturnQuantity().multiply(item.getRate());
+                        lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
+                    }
+
+                    for (CreditNoteItemTax snapshot : item.getTaxes()) {
+                        BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
+                        snapshot.setTaxAmount(amount);
+                    }
+
+                    item.setRowTotal(lineGrandTotal);
+                    grandTotal = grandTotal.add(lineGrandTotal);
                 }
                 item.setCreditNoteEntity(creditNote);
             }

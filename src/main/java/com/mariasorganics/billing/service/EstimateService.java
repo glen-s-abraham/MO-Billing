@@ -33,10 +33,52 @@ public class EstimateService {
         BigDecimal grandTotal = BigDecimal.ZERO;
         if (estimate.getItems() != null) {
             for (EstimateItem item : estimate.getItems()) {
-                if(item.getQuantity() != null && item.getRate() != null) {
-                    BigDecimal rowTotal = item.getQuantity().multiply(item.getRate());
-                    item.setRowTotal(rowTotal);
-                    grandTotal = grandTotal.add(rowTotal);
+                if (item.getProductEntity() != null && item.getQuantity() != null && item.getRate() != null) {
+                    // 1. Fetch current product taxes for snapshotting (only for new items or re-calculating)
+                    // In a more complex app, we might check if taxes changed, but for now we snapshot on save.
+                    Product product = item.getProductEntity();
+                    
+                    // Clear existing snapshots to avoid duplicates on update
+                    if (item.getTaxes() != null) {
+                        item.getTaxes().clear();
+                    }
+
+                    BigDecimal totalTaxRate = BigDecimal.ZERO;
+                    if (product.getTaxes() != null) {
+                        for (ProductTax pTax : product.getTaxes()) {
+                            totalTaxRate = totalTaxRate.add(pTax.getTaxPercentage());
+                            
+                            // Create snapshot
+                            EstimateItemTax snapshot = EstimateItemTax.builder()
+                                    .taxName(pTax.getTaxName())
+                                    .taxPercentage(pTax.getTaxPercentage())
+                                    .estimateItemEntity(item)
+                                    .taxAmount(BigDecimal.ZERO) // Will calculate below
+                                    .build();
+                            item.addTax(snapshot);
+                        }
+                    }
+
+                    // 2. Calculate row total based on inclusivity
+                    BigDecimal lineBaseTotal;
+                    BigDecimal lineGrandTotal;
+                    
+                    if (item.isTaxInclusive()) {
+                        lineGrandTotal = item.getQuantity().multiply(item.getRate());
+                        lineBaseTotal = lineGrandTotal.divide(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))), 4, java.math.RoundingMode.HALF_UP);
+                    } else {
+                        lineBaseTotal = item.getQuantity().multiply(item.getRate());
+                        lineGrandTotal = lineBaseTotal.multiply(BigDecimal.ONE.add(totalTaxRate.divide(new BigDecimal("100"))));
+                    }
+
+                    // 3. Update snapshot tax amounts
+                    for (EstimateItemTax snapshot : item.getTaxes()) {
+                        BigDecimal amount = lineBaseTotal.multiply(snapshot.getTaxPercentage().divide(new BigDecimal("100")));
+                        snapshot.setTaxAmount(amount);
+                    }
+
+                    item.setRowTotal(lineGrandTotal);
+                    grandTotal = grandTotal.add(lineGrandTotal);
                 }
                 item.setEstimateEntity(estimate);
             }

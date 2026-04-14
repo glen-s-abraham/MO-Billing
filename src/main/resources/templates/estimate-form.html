@@ -61,11 +61,12 @@
                     <table class="table table-bordered mb-0" id="itemsTable">
                         <thead class="table-light">
                             <tr>
-                                <th width="30%">Product</th>
-                                <th width="15%">Item MRP (₹)</th>
-                                <th width="15%">Quantity</th>
-                                <th width="15%">Supplier Rate (₹)</th>
-                                <th width="15%">Total (₹)</th>
+                                <th width="25%">Product</th>
+                                <th width="10%">MRP</th>
+                                <th width="10%">Qty</th>
+                                <th width="15%">Rate (₹)</th>
+                                <th width="12%">Incl. Tax</th>
+                                <th width="18%">Total (₹)</th>
                                 <th width="10%" class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -77,10 +78,17 @@
                                         <option value="">-- Select --</option>
                                         <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.title}"></option>
                                     </select>
+                                    <div class="row-tax-container small text-muted mt-1"></div>
+                                    <div class="row-tax-data-store d-none"></div>
                                 </td>
                                 <td><input type="number" step="0.01" class="form-control mrp-input" value="0.00" disabled></td>
                                 <td><input type="number" step="0.01" class="form-control qty-input" value="1" disabled></td>
                                 <td><input type="number" step="0.01" class="form-control rate-input" value="0.00" disabled></td>
+                                <td class="text-center align-middle">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input tax-inclusive-check" type="checkbox" disabled>
+                                    </div>
+                                </td>
                                 <td><input type="text" class="form-control row-total-display text-end" value="0.00" readonly disabled></td>
                                 <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row-btn fw-bold">X</button></td>
                             </tr>
@@ -96,6 +104,13 @@
                                                 th:selected="${item.productEntity != null and item.productEntity.id == product.id}">
                                         </option>
                                     </select>
+                                    <div class="row-tax-container small text-muted mt-1">
+                                        <span th:each="itax : ${item.taxes}" th:text="${itax.taxName + '(' + itax.taxPercentage + '%) '}" class="me-1"></span>
+                                    </div>
+                                    <div class="row-tax-data-store d-none">
+                                        <span th:each="itax : ${item.taxes}" class="tax-item-config" 
+                                              th:attr="data-name=${itax.taxName}, data-percentage=${itax.taxPercentage}"></span>
+                                    </div>
                                 </td>
                                 <td>
                                     <input type="number" step="0.01" class="form-control mrp-input" th:name="'items[' + ${stat.index} + '].mrp'" th:value="${item.mrp}">
@@ -106,6 +121,11 @@
                                 <td>
                                     <input type="number" step="0.01" class="form-control rate-input" th:name="'items[' + ${stat.index} + '].rate'" th:value="${item.rate}">
                                 </td>
+                                <td class="text-center align-middle">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input tax-inclusive-check" type="checkbox" th:name="'items[' + ${stat.index} + '].taxInclusive'" th:checked="${item.taxInclusive}">
+                                    </div>
+                                </td>
                                 <td>
                                     <input type="text" class="form-control row-total-display text-end" th:name="'items[' + ${stat.index} + '].rowTotal'" th:value="${item.rowTotal}" readonly>
                                 </td>
@@ -113,8 +133,16 @@
                             </tr>
                         </tbody>
                         <tfoot>
+                            <tr class="table-light">
+                                <td colspan="5" class="text-end fw-bold">Subtotal (Base)</td>
+                                <td class="text-end fw-bold" id="subtotalBaseText">0.00</td>
+                                <td></td>
+                            </tr>
+                            <tr id="taxBreakdownFooter" class="table-light">
+                                <!-- Tax rows injected here via JS -->
+                            </tr>
                             <tr>
-                                <td colspan="4" class="text-end fw-bold align-middle">Grand Total</td>
+                                <td colspan="5" class="text-end fw-bold align-middle bg-light">Grand Total</td>
                                 <td class="text-end grand-total-display">₹ <span id="grandTotalText">0.00</span></td>
                                 <td></td>
                             </tr>
@@ -145,20 +173,83 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    function getRowTaxes(row) {
+        const taxes = [];
+        row.querySelectorAll('.tax-item-config').forEach(el => {
+            taxes.push({
+                taxName: el.getAttribute('data-name'),
+                taxPercentage: parseFloat(el.getAttribute('data-percentage')) || 0
+            });
+        });
+        return taxes;
+    }
+
     function calculateRow(row) {
         const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
         const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
-        const total = qty * rate;
-        row.querySelector('.row-total-display').value = total.toFixed(2);
+        const isInclusive = row.querySelector('.tax-inclusive-check').checked;
+        const taxes = getRowTaxes(row);
+        
+        let totalTaxRate = 0;
+        taxes.forEach(t => totalTaxRate += parseFloat(t.taxPercentage) || 0);
+
+        let rowTotal = 0;
+        if (isInclusive) {
+            rowTotal = qty * rate;
+        } else {
+            rowTotal = (qty * rate) * (1 + (totalTaxRate / 100));
+        }
+
+        row.querySelector('.row-total-display').value = rowTotal.toFixed(2);
         calculateGrandTotal();
     }
 
     function calculateGrandTotal() {
-        let gt = 0;
-        document.querySelectorAll('.item-row:not(.template-row) .row-total-display').forEach(input => {
-            gt += parseFloat(input.value) || 0;
+        let grandTotal = 0;
+        let subtotalBase = 0;
+        const taxTotals = {};
+
+        document.querySelectorAll('.item-row:not(.template-row)').forEach(row => {
+            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
+            const isInclusive = row.querySelector('.tax-inclusive-check').checked;
+            const taxes = getRowTaxes(row);
+
+            let totalTaxRate = 0;
+            taxes.forEach(t => totalTaxRate += parseFloat(t.taxPercentage) || 0);
+
+            let baseRate = 0;
+            if (isInclusive) {
+                baseRate = rate / (1 + (totalTaxRate / 100));
+            } else {
+                baseRate = rate;
+            }
+
+            const lineBaseTotal = qty * baseRate;
+            subtotalBase += lineBaseTotal;
+
+            taxes.forEach(t => {
+                const taxAmount = lineBaseTotal * (parseFloat(t.taxPercentage) / 100);
+                taxTotals[t.taxName] = (taxTotals[t.taxName] || 0) + taxAmount;
+            });
+
+            grandTotal += parseFloat(row.querySelector('.row-total-display').value) || 0;
         });
-        grandTotalSpan.textContent = gt.toFixed(2);
+
+        document.getElementById('subtotalBaseText').textContent = subtotalBase.toFixed(2);
+        grandTotalSpan.textContent = grandTotal.toFixed(2);
+
+        // Update Tax Breakdown
+        const breakdownTbody = document.getElementById('taxBreakdownFooter');
+        // Clear existing tax rows in footer
+        document.querySelectorAll('.tax-breakdown-row').forEach(el => el.remove());
+        
+        for (const [name, amount] of Object.entries(taxTotals)) {
+            const tr = document.createElement('tr');
+            tr.className = 'tax-breakdown-row table-light';
+            tr.innerHTML = `<td colspan="5" class="text-end text-muted">${name}</td><td class="text-end text-muted">${amount.toFixed(2)}</td><td></td>`;
+            breakdownTbody.before(tr);
+        }
     }
 
     function updateRowIndexes() {
@@ -168,12 +259,13 @@ document.addEventListener('DOMContentLoaded', function() {
             row.querySelector('.qty-input').name = 'items[' + idx + '].quantity';
             row.querySelector('.mrp-input').name = 'items[' + idx + '].mrp';
             row.querySelector('.rate-input').name = 'items[' + idx + '].rate';
+            row.querySelector('.tax-inclusive-check').name = 'items[' + idx + '].taxInclusive';
             row.querySelector('.row-total-display').name = 'items[' + idx + '].rowTotal';
         });
     }
 
     tbody.addEventListener('input', function(e) {
-        if(e.target.classList.contains('qty-input') || e.target.classList.contains('rate-input')) {
+        if(e.target.classList.contains('qty-input') || e.target.classList.contains('rate-input') || e.target.classList.contains('tax-inclusive-check')) {
             calculateRow(e.target.closest('tr'));
         }
     });
@@ -188,13 +280,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(data => {
                         row.querySelector('.mrp-input').value = data.mrp;
                         row.querySelector('.rate-input').value = data.supplyRate;
+                        row.querySelector('.tax-inclusive-check').checked = data.taxInclusive;
+                        
+                        // Store tax config in row
+                        const store = row.querySelector('.row-tax-data-store');
+                        store.innerHTML = '';
+                        data.taxes.forEach(t => {
+                            const span = document.createElement('span');
+                            span.className = 'tax-item-config';
+                            span.setAttribute('data-name', t.taxName);
+                            span.setAttribute('data-percentage', t.taxPercentage);
+                            store.appendChild(span);
+                        });
+                        
+                        // Display small label
+                        let taxLabel = "";
+                        data.taxes.forEach(t => taxLabel += t.taxName + "(" + t.taxPercentage + "%) ");
+                        row.querySelector('.row-tax-container').textContent = taxLabel;
+
                         calculateRow(row);
                     });
             } else {
                 row.querySelector('.mrp-input').value = '0.00';
                 row.querySelector('.rate-input').value = '0.00';
+                row.querySelector('.row-tax-data-store').innerHTML = '';
+                row.querySelector('.row-tax-container').textContent = '';
                 calculateRow(row);
             }
+        }
+        if(e.target.classList.contains('tax-inclusive-check')) {
+            calculateRow(e.target.closest('tr'));
         }
     });
 
