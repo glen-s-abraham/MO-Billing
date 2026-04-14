@@ -4,11 +4,13 @@ import com.mariasorganics.billing.model.Buyer;
 import com.mariasorganics.billing.repository.BuyerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BuyerService {
     private final BuyerRepository buyerRepository;
 
@@ -24,6 +26,7 @@ public class BuyerService {
         return buyerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid buyer ID: " + id));
     }
 
+    @Transactional
     public Buyer saveBuyer(Buyer buyer) {
         return buyerRepository.save(buyer);
     }

@@ -12,6 +12,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EstimateService {
     private final EstimateRepository estimateRepository;
     private final DocumentConfigurationRepository docConfigRepo;
