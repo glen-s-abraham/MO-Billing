@@ -55,18 +55,14 @@ public class DevDataSeeder implements CommandLineRunner {
 
         if (productRepository.count() == 0) {
             Product p1 = new Product();
-            p1.setSku("MO-OY-250");
             p1.setTitle("Fresh Oyster Mushrooms (250g)");
-            p1.setDescription("Premium quality freshly harvested oyster mushrooms");
             p1.setSupplyRate(new BigDecimal("120.00"));
             p1.setMrp(new BigDecimal("150.00"));
             p1.setUom("250g Box");
             productRepository.save(p1);
 
             Product p2 = new Product();
-            p2.setSku("MO-BM-500");
             p2.setTitle("Button Mushrooms (500g)");
-            p2.setDescription("Large white button mushrooms");
             p2.setSupplyRate(new BigDecimal("180.00"));
             p2.setMrp(new BigDecimal("220.00"));
             p2.setUom("500g Box");
@@ -80,14 +76,14 @@ public class DevDataSeeder implements CommandLineRunner {
             b1.setBillingAddress("45 Main Street, Ernakulam");
             b1.setShippingAddress("45 Main Street, Ernakulam");
             b1.setTaxId("GSTIN23456789");
-            b1.setContactNumber("+91 9876543210");
+            b1.setPhone("+91 9876543210");
             buyerRepository.save(b1);
 
             Buyer b2 = new Buyer();
             b2.setName("Organic Harvest Cafe");
             b2.setBillingAddress("12 MG Road, Kochi");
             b2.setShippingAddress("12 MG Road, Kochi");
-            b2.setContactNumber("+91 8765432109");
+            b2.setPhone("+91 8765432109");
             buyerRepository.save(b2);
             log.info("Seeded Buyers.");
         }
