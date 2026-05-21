@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EstimateRepository extends JpaRepository<Estimate, Long> {
+    long countByBuyerEntityAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, com.mariasorganics.billing.model.EstimateStatus status);
+    long countByStatusNot(com.mariasorganics.billing.model.EstimateStatus status);
 }

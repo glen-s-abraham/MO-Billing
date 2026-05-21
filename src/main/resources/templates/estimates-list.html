@@ -20,37 +20,87 @@
     </div>
 
     <div class="card shadow-sm border-0 p-4">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle datatable">
-                <thead class="table-light">
-                    <tr>
-                        <th>Doc #</th>
-                        <th>Date</th>
-                        <th>Buyer</th>
-                        <th>Total Amount</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="est : ${estimates}">
-                        <td data-label="Doc #" class="fw-bold text-primary" th:text="${est.estimateNumber}"></td>
-                        <td data-label="Date" th:text="${#temporals.format(est.estimateDate, 'dd-MMM-yyyy')}"></td>
-                        <td data-label="Buyer" th:text="${est.buyerEntity != null ? est.buyerEntity.name : 'Unknown'}"></td>
-                        <td data-label="Total Amount" th:text="${'₹ ' + #numbers.formatDecimal(est.totalAmount, 1, 2)}"></td>
-                        <td data-label="Status">
-                            <span class="badge" th:classappend="${est.status.name() == 'ACCEPTED' ? 'bg-success' : (est.status.name() == 'CANCELLED' || est.status.name() == 'REJECTED' ? 'bg-danger text-white' : 'bg-secondary')}" th:text="${est.status}"></span>
-                        </td>
-                        <td data-label="Actions">
-                            <a th:href="@{/estimates/{id}/edit(id=${est.id})}" class="btn btn-sm btn-primary shadow-sm" th:if="${est.status.name() != 'CANCELLED' and est.status.name() != 'REJECTED'}"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
-                            <a th:href="@{/estimates/{id}/pdf(id=${est.id})}" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="bi bi-file-pdf"></i> PDF</a>
-                            <form th:action="@{/estimates/{id}/cancel(id=${est.id})}" method="post" class="d-inline" th:if="${est.status.name() != 'CANCELLED' and est.status.name() != 'REJECTED'}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm" onclick="return confirm('Are you sure you want to cancel this estimate?');"><i class="bi bi-x-circle"></i><span class="d-none d-md-inline"> Cancel</span></button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <ul class="nav nav-tabs mb-4" id="estimateTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-estimates" type="button" role="tab" aria-controls="active-estimates" aria-selected="true">Active Estimates</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled-estimates" type="button" role="tab" aria-controls="cancelled-estimates" aria-selected="false">Cancelled</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="estimateTabsContent">
+            <!-- Active Estimates Tab -->
+            <div class="tab-pane fade show active" id="active-estimates" role="tabpanel" aria-labelledby="active-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle datatable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Doc #</th>
+                                <th>Date</th>
+                                <th>Buyer</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="est : ${activeEstimates}">
+                                <td data-label="ID" th:text="${est.id}"></td>
+                                <td data-label="Doc #" class="fw-bold text-primary" th:text="${est.estimateNumber}"></td>
+                                <td data-label="Date" th:text="${#temporals.format(est.estimateDate, 'dd-MMM-yyyy')}"></td>
+                                <td data-label="Buyer" th:text="${est.buyerEntity != null ? est.buyerEntity.name : 'Unknown'}"></td>
+                                <td data-label="Total Amount" th:text="${'₹ ' + #numbers.formatDecimal(est.totalAmount, 1, 2)}"></td>
+                                <td data-label="Status">
+                                    <span class="badge" th:classappend="${est.status.name() == 'ACCEPTED' ? 'bg-success' : 'bg-secondary'}" th:text="${est.status}"></span>
+                                </td>
+                                <td data-label="Actions">
+                                    <a th:href="@{/estimates/{id}/edit(id=${est.id})}" class="btn btn-sm btn-primary shadow-sm" th:if="${est.status.name() != 'REJECTED'}"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
+                                    <a th:href="@{/estimates/{id}/pdf(id=${est.id})}" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="bi bi-file-pdf"></i> PDF</a>
+                                    <form th:action="@{/estimates/{id}/cancel(id=${est.id})}" method="post" class="d-inline" th:if="${est.status.name() != 'REJECTED'}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm" onclick="return confirm('Are you sure you want to cancel this estimate?');"><i class="bi bi-x-circle"></i><span class="d-none d-md-inline"> Cancel</span></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cancelled Estimates Tab -->
+            <div class="tab-pane fade" id="cancelled-estimates" role="tabpanel" aria-labelledby="cancelled-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle datatable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Doc #</th>
+                                <th>Date</th>
+                                <th>Buyer</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="est : ${cancelledEstimates}">
+                                <td data-label="ID" th:text="${est.id}"></td>
+                                <td data-label="Doc #" class="fw-bold text-muted" th:text="${est.estimateNumber}"></td>
+                                <td data-label="Date" th:text="${#temporals.format(est.estimateDate, 'dd-MMM-yyyy')}"></td>
+                                <td data-label="Buyer" th:text="${est.buyerEntity != null ? est.buyerEntity.name : 'Unknown'}"></td>
+                                <td data-label="Total Amount" th:text="${'₹ ' + #numbers.formatDecimal(est.totalAmount, 1, 2)}"></td>
+                                <td data-label="Status">
+                                    <span class="badge bg-danger text-white" th:text="${est.status}"></span>
+                                </td>
+                                <td data-label="Actions">
+                                    <a th:href="@{/estimates/{id}/pdf(id=${est.id})}" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="bi bi-file-pdf"></i> PDF</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
