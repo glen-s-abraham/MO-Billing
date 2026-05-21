@@ -33,7 +33,9 @@ public class CreditNoteController {
 
     @GetMapping
     public String listCreditNotes(Model model) {
-        model.addAttribute("creditNotes", creditNoteService.getAllCreditNotes());
+        var allCreditNotes = creditNoteService.getAllCreditNotes();
+        model.addAttribute("activeCreditNotes", allCreditNotes.stream().filter(c -> c.getStatus() != CreditNoteStatus.VOID).toList());
+        model.addAttribute("cancelledCreditNotes", allCreditNotes.stream().filter(c -> c.getStatus() == CreditNoteStatus.VOID).toList());
         return "credit-notes-list";
     }
 

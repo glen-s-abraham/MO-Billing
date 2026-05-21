@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CreditNoteRepository extends JpaRepository<CreditNote, Long> {
+    long countByBuyerEntityAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, com.mariasorganics.billing.model.CreditNoteStatus status);
+    long countByStatusNot(com.mariasorganics.billing.model.CreditNoteStatus status);
 }
