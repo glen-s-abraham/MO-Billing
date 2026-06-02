@@ -23,4 +23,8 @@ public class SettingsFormDto {
     private String creditNotePrefix;
     private String creditNoteTerms;
     private String creditNoteFooter;
+
+    private String deliveryChallanPrefix;
+    private String deliveryChallanTerms;
+    private String deliveryChallanFooter;
 }

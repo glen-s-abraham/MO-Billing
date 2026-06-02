@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: common_head('Delivery Challans')}"></th:block>
+    <th:block th:replace="~{fragments :: datatables-css}"></th:block>
+</head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: bottom_nav}"></div>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Delivery Challans</h2>
+        <a href="/delivery-challans/new" class="btn btn-primary fw-bold shadow-sm">+ Create Delivery Challan</a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible bg-success text-white fade show border-0 shadow-sm" role="alert">
+        <strong th:text="${successMessage}">Success</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm border-0 p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle datatable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Challan #</th>
+                        <th>Date</th>
+                        <th>Buyer</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="dc : ${deliveryChallans}">
+                        <td data-label="Challan #" class="fw-bold text-primary" th:text="${dc.challanNumber}"></td>
+                        <td data-label="Date" th:text="${#temporals.format(dc.challanDate, 'dd-MMM-yyyy')}"></td>
+                        <td data-label="Buyer" th:text="${dc.buyerEntity != null ? dc.buyerEntity.name : 'Unknown'}"></td>
+                        <td data-label="Total Amount" th:text="${'₹ ' + #numbers.formatDecimal(dc.totalAmount, 1, 2)}"></td>
+                        <td data-label="Status">
+                            <span class="badge" th:classappend="${dc.status.name() == 'DELIVERED' || dc.status.name() == 'SENT' ? 'bg-success' : (dc.status.name() == 'CANCELLED' ? 'bg-danger text-white' : 'bg-secondary')}" th:text="${dc.status}"></span>
+                        </td>
+                        <td data-label="Actions">
+                            <a th:href="@{/delivery-challans/{id}/edit(id=${dc.id})}" class="btn btn-sm btn-primary shadow-sm" th:if="${dc.status.name() != 'CANCELLED'}"><i class="bi bi-pencil"></i><span class="d-none d-md-inline"> Edit</span></a>
+                            <a th:href="@{/delivery-challans/{id}/pdf(id=${dc.id})}" class="btn btn-sm btn-outline-secondary shadow-sm"><i class="bi bi-file-pdf"></i> PDF</a>
+                            <form th:action="@{/delivery-challans/{id}/cancel(id=${dc.id})}" method="post" class="d-inline" th:if="${dc.status.name() != 'CANCELLED'}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm" onclick="return confirm('Are you sure you want to cancel this delivery challan?');"><i class="bi bi-x-circle"></i><span class="d-none d-md-inline"> Cancel</span></button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<th:block th:replace="~{fragments :: datatables-js}"></th:block>
+<script>
+    $(document).ready(function() {
+        $('.datatable').DataTable({
+            "order": [ [0, "desc"] ],
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search Delivery Challans..."
+            }
+        });
+    });
+</script>
+</body>
+</html>

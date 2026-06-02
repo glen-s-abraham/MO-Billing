@@ -33,6 +33,9 @@
                     <a class="nav-link" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/estimates') ? 'active' : ''}" href="/estimates">Estimates</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/delivery-challans') ? 'active' : ''}" href="/delivery-challans">Delivery Challans</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/credit-notes') ? 'active' : ''}" href="/credit-notes">Credit Notes</a>
                 </li>
                 <li class="nav-item">
@@ -79,6 +82,10 @@
     <a href="/estimates" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/estimates') ? 'active' : ''}">
         <i class="bi bi-file-earmark-text"></i>
         <span>Estimates</span>
+    </a>
+    <a href="/delivery-challans" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/delivery-challans') ? 'active' : ''}">
+        <i class="bi bi-truck"></i>
+        <span>Challans</span>
     </a>
     <a href="/credit-notes" class="nav-item" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/credit-notes') ? 'active' : ''}">
         <i class="bi bi-arrow-return-left"></i>

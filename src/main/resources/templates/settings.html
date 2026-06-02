@@ -177,7 +177,7 @@
             <!-- TAB 4: DOCUMENTS -->
             <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
                 <div class="row">
-                    <div class="col-md-6 mb-4">
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="card bg-light h-100 border">
                             <div class="card-body">
                                 <h5 class="card-title text-primary fw-bold">Estimates</h5>
@@ -198,7 +198,28 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-4">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card bg-light h-100 border">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning fw-bold">Delivery Challans</h5>
+                                <p class="text-muted small mb-4">Settings applied uniquely to all generated delivery challan PDFs.</p>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">ID Prefix</label>
+                                    <input type="text" class="form-control" th:field="*{deliveryChallanPrefix}" placeholder="e.g. DC-">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Terms & Conditions</label>
+                                    <textarea class="form-control" th:field="*{deliveryChallanTerms}" rows="4" placeholder="Delivery terms..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Footer Notes</label>
+                                    <textarea class="form-control" th:field="*{deliveryChallanFooter}" rows="2" placeholder="Received in good condition..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="card bg-light h-100 border">
                             <div class="card-body">
                                 <h5 class="card-title text-success fw-bold">Credit Notes</h5>

@@ -74,6 +74,12 @@ public class SettingsService {
         dto.setCreditNoteTerms(creditNote.getTermsAndConditions());
         dto.setCreditNoteFooter(creditNote.getFooterNotes());
 
+        DocumentConfiguration deliveryChallan = docConfigRepo.findByDocumentType(DocumentType.DELIVERY_CHALLAN)
+                .orElse(new DocumentConfiguration());
+        dto.setDeliveryChallanPrefix(deliveryChallan.getDocumentPrefix());
+        dto.setDeliveryChallanTerms(deliveryChallan.getTermsAndConditions());
+        dto.setDeliveryChallanFooter(deliveryChallan.getFooterNotes());
+
         return dto;
     }
 
@@ -122,6 +128,7 @@ public class SettingsService {
 
         saveDocConfig(DocumentType.ESTIMATE, dto.getEstimatePrefix(), dto.getEstimateTerms(), dto.getEstimateFooter());
         saveDocConfig(DocumentType.CREDIT_NOTE, dto.getCreditNotePrefix(), dto.getCreditNoteTerms(), dto.getCreditNoteFooter());
+        saveDocConfig(DocumentType.DELIVERY_CHALLAN, dto.getDeliveryChallanPrefix(), dto.getDeliveryChallanTerms(), dto.getDeliveryChallanFooter());
     }
 
     private void saveDocConfig(DocumentType type, String prefix, String terms, String footer) {
