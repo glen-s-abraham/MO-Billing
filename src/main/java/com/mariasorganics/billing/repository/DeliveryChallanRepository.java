@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DeliveryChallanRepository extends JpaRepository<DeliveryChallan, Long> {
+    long countByBuyerEntityAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, com.mariasorganics.billing.model.DeliveryChallanStatus status);
+    long countByStatusNot(com.mariasorganics.billing.model.DeliveryChallanStatus status);
 }

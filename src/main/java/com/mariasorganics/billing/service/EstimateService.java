@@ -31,7 +31,7 @@ public class EstimateService {
     @Transactional
     public Estimate saveEstimate(Estimate estimate) {
         if (estimate.getId() == null && (estimate.getEstimateNumber() == null || estimate.getEstimateNumber().isEmpty())) {
-            estimate.setEstimateNumber(generateEstimateNumber(estimate.getBuyerEntity()));
+            estimate.setEstimateNumber(generateEstimateNumber(estimate.getBuyerEntity(), estimate.getEstimateDate()));
         }
 
         // If the estimate is cancelled, update the Document # to denote that
@@ -55,7 +55,7 @@ public class EstimateService {
         return estimateRepository.save(estimate);
     }
 
-    private String generateEstimateNumber(Buyer buyer) {
+    private String generateEstimateNumber(Buyer buyer, LocalDate date) {
         DocumentConfiguration config = docConfigRepo.findByDocumentType(DocumentType.ESTIMATE)
                 .orElse(new DocumentConfiguration());
         String globalPrefix = config.getDocumentPrefix();
@@ -73,9 +73,9 @@ public class EstimateService {
                 ? estimateRepository.countByBuyerEntityAndStatusNot(buyer, EstimateStatus.CANCELLED) + 1 
                 : estimateRepository.countByStatusNot(EstimateStatus.CANCELLED) + 1;
         
-        LocalDate now = LocalDate.now();
-        int month = now.getMonthValue(); // 1-12 without zero padding
-        int year = now.getYear() % 100; // last 2 digits
+        LocalDate docDate = (date != null) ? date : LocalDate.now();
+        int month = docDate.getMonthValue(); // 1-12 without zero padding
+        int year = docDate.getYear() % 100; // last 2 digits
 
         return String.format("%s %s-%d%d%d", customerPrefix, globalPrefix, count, month, year);
     }

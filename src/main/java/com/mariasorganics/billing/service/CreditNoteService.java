@@ -31,7 +31,7 @@ public class CreditNoteService {
     @Transactional
     public CreditNote saveCreditNote(CreditNote creditNote) {
         if (creditNote.getId() == null && (creditNote.getCreditNoteNumber() == null || creditNote.getCreditNoteNumber().isEmpty())) {
-            creditNote.setCreditNoteNumber(generateCreditNoteNumber(creditNote.getBuyerEntity()));
+            creditNote.setCreditNoteNumber(generateCreditNoteNumber(creditNote.getBuyerEntity(), creditNote.getIssueDate()));
         }
 
         // If the credit note is cancelled (VOID), update the Document # to denote that
@@ -55,7 +55,7 @@ public class CreditNoteService {
         return creditNoteRepository.save(creditNote);
     }
 
-    private String generateCreditNoteNumber(Buyer buyer) {
+    private String generateCreditNoteNumber(Buyer buyer, LocalDate date) {
         DocumentConfiguration config = docConfigRepo.findByDocumentType(DocumentType.CREDIT_NOTE)
                 .orElse(new DocumentConfiguration());
         String globalPrefix = config.getDocumentPrefix();
@@ -73,9 +73,9 @@ public class CreditNoteService {
                 ? creditNoteRepository.countByBuyerEntityAndStatusNot(buyer, CreditNoteStatus.VOID) + 1 
                 : creditNoteRepository.countByStatusNot(CreditNoteStatus.VOID) + 1;
         
-        LocalDate now = LocalDate.now();
-        int month = now.getMonthValue(); // 1-12 without zero padding
-        int year = now.getYear() % 100; // last 2 digits
+        LocalDate docDate = (date != null) ? date : LocalDate.now();
+        int month = docDate.getMonthValue(); // 1-12 without zero padding
+        int year = docDate.getYear() % 100; // last 2 digits
 
         return String.format("%s %s-%d%d%d", customerPrefix, globalPrefix, count, month, year);
     }

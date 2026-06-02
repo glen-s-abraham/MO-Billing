@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Sort;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -18,7 +21,7 @@ public class DeliveryChallanService {
     private final DocumentConfigurationRepository docConfigRepo;
 
     public List<DeliveryChallan> getAllDeliveryChallans() {
-        return deliveryChallanRepository.findAll();
+        return deliveryChallanRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 
     public DeliveryChallan getDeliveryChallanById(Long id) {
@@ -29,7 +32,12 @@ public class DeliveryChallanService {
     @Transactional
     public DeliveryChallan saveDeliveryChallan(DeliveryChallan deliveryChallan) {
         if (deliveryChallan.getId() == null && (deliveryChallan.getChallanNumber() == null || deliveryChallan.getChallanNumber().isEmpty())) {
-            deliveryChallan.setChallanNumber(generateChallanNumber());
+            deliveryChallan.setChallanNumber(generateChallanNumber(deliveryChallan.getBuyerEntity(), deliveryChallan.getChallanDate()));
+        }
+
+        // If the delivery challan is cancelled, update the Document # to denote that
+        if (deliveryChallan.getStatus() == DeliveryChallanStatus.CANCELLED && deliveryChallan.getChallanNumber() != null && !deliveryChallan.getChallanNumber().endsWith("-CANC")) {
+            deliveryChallan.setChallanNumber(deliveryChallan.getChallanNumber() + "-CANC");
         }
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -48,15 +56,28 @@ public class DeliveryChallanService {
         return deliveryChallanRepository.save(deliveryChallan);
     }
 
-    private String generateChallanNumber() {
+    private String generateChallanNumber(Buyer buyer, LocalDate date) {
         DocumentConfiguration config = docConfigRepo.findByDocumentType(DocumentType.DELIVERY_CHALLAN)
                 .orElse(new DocumentConfiguration());
-        String prefix = config.getDocumentPrefix();
-        if (prefix == null || prefix.isEmpty()) {
-            prefix = "DC-";
+        String globalPrefix = config.getDocumentPrefix();
+        if (globalPrefix == null || globalPrefix.isEmpty()) {
+            globalPrefix = "DC";
+        } else {
+            globalPrefix = globalPrefix.replace("-", "").trim();
         }
 
-        long count = deliveryChallanRepository.count() + 1;
-        return prefix + String.format("%04d", count);
+        String customerPrefix = buyer != null && buyer.getInvoicePrefix() != null && !buyer.getInvoicePrefix().trim().isEmpty() 
+                ? buyer.getInvoicePrefix().trim() 
+                : (buyer != null && buyer.getName() != null ? buyer.getName().trim() : "CUST");
+
+        long count = (buyer != null) 
+                ? deliveryChallanRepository.countByBuyerEntityAndStatusNot(buyer, DeliveryChallanStatus.CANCELLED) + 1 
+                : deliveryChallanRepository.countByStatusNot(DeliveryChallanStatus.CANCELLED) + 1;
+        
+        LocalDate docDate = (date != null) ? date : LocalDate.now();
+        int month = docDate.getMonthValue(); // 1-12 without zero padding
+        int year = docDate.getYear() % 100; // last 2 digits
+
+        return String.format("%s %s-%d%d%d", customerPrefix, globalPrefix, count, month, year);
     }
 }
