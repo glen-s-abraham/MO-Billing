@@ -32,7 +32,9 @@ public class EstimateController {
 
     @GetMapping
     public String listEstimates(Model model) {
-        model.addAttribute("estimates", estimateService.getAllEstimates());
+        var allEstimates = estimateService.getAllEstimates();
+        model.addAttribute("activeEstimates", allEstimates.stream().filter(e -> e.getStatus() != EstimateStatus.CANCELLED).toList());
+        model.addAttribute("cancelledEstimates", allEstimates.stream().filter(e -> e.getStatus() == EstimateStatus.CANCELLED).toList());
         return "estimates-list";
     }
 

@@ -7,7 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Sort;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -18,7 +21,7 @@ public class EstimateService {
     private final DocumentConfigurationRepository docConfigRepo;
 
     public List<Estimate> getAllEstimates() {
-        return estimateRepository.findAll();
+        return estimateRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 
     public Estimate getEstimateById(Long id) {
@@ -28,7 +31,12 @@ public class EstimateService {
     @Transactional
     public Estimate saveEstimate(Estimate estimate) {
         if (estimate.getId() == null && (estimate.getEstimateNumber() == null || estimate.getEstimateNumber().isEmpty())) {
-            estimate.setEstimateNumber(generateEstimateNumber());
+            estimate.setEstimateNumber(generateEstimateNumber(estimate.getBuyerEntity()));
+        }
+
+        // If the estimate is cancelled, update the Document # to denote that
+        if (estimate.getStatus() == EstimateStatus.CANCELLED && estimate.getEstimateNumber() != null && !estimate.getEstimateNumber().endsWith("-CANC")) {
+            estimate.setEstimateNumber(estimate.getEstimateNumber() + "-CANC");
         }
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -47,15 +55,28 @@ public class EstimateService {
         return estimateRepository.save(estimate);
     }
 
-    private String generateEstimateNumber() {
+    private String generateEstimateNumber(Buyer buyer) {
         DocumentConfiguration config = docConfigRepo.findByDocumentType(DocumentType.ESTIMATE)
                 .orElse(new DocumentConfiguration());
-        String prefix = config.getDocumentPrefix();
-        if (prefix == null || prefix.isEmpty()) {
-            prefix = "EST-";
+        String globalPrefix = config.getDocumentPrefix();
+        if (globalPrefix == null || globalPrefix.isEmpty()) {
+            globalPrefix = "EST";
+        } else {
+            globalPrefix = globalPrefix.replace("-", "").trim();
         }
 
-        long count = estimateRepository.count() + 1;
-        return prefix + String.format("%04d", count);
+        String customerPrefix = buyer != null && buyer.getInvoicePrefix() != null && !buyer.getInvoicePrefix().trim().isEmpty() 
+                ? buyer.getInvoicePrefix().trim() 
+                : (buyer != null && buyer.getName() != null ? buyer.getName().trim() : "CUST");
+
+        long count = (buyer != null) 
+                ? estimateRepository.countByBuyerEntityAndStatusNot(buyer, EstimateStatus.CANCELLED) + 1 
+                : estimateRepository.countByStatusNot(EstimateStatus.CANCELLED) + 1;
+        
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue(); // 1-12 without zero padding
+        int year = now.getYear() % 100; // last 2 digits
+
+        return String.format("%s %s-%d%d%d", customerPrefix, globalPrefix, count, month, year);
     }
 }

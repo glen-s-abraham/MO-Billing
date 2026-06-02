@@ -18,12 +18,16 @@
             <input type="hidden" th:field="*{id}">
             
             <div class="row">
-                <div class="col-md-8 mb-3">
+                <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Company / Buyer Name</label>
                     <input type="text" class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" required>
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-bold">Invoice Prefix</label>
+                    <input type="text" class="form-control" th:field="*{invoicePrefix}" placeholder="e.g. KAPRA">
+                </div>
+                <div class="col-md-3 mb-3">
                     <label class="form-label fw-bold">GSTIN</label>
                     <input type="text" class="form-control" th:field="*{gstin}">
                 </div>

@@ -44,4 +44,7 @@ public class Buyer {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @Column(length = 20)
+    private String invoicePrefix;
 }
