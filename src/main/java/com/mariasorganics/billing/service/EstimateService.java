@@ -69,14 +69,17 @@ public class EstimateService {
                 ? buyer.getInvoicePrefix().trim() 
                 : (buyer != null && buyer.getName() != null ? buyer.getName().trim() : "CUST");
 
-        long count = (buyer != null) 
-                ? estimateRepository.countByBuyerEntityAndStatusNot(buyer, EstimateStatus.CANCELLED) + 1 
-                : estimateRepository.countByStatusNot(EstimateStatus.CANCELLED) + 1;
-        
         LocalDate docDate = (date != null) ? date : LocalDate.now();
-        int month = docDate.getMonthValue(); // 1-12 without zero padding
+        LocalDate startOfMonth = docDate.withDayOfMonth(1);
+        LocalDate endOfMonth = docDate.withDayOfMonth(docDate.lengthOfMonth());
+
+        long count = (buyer != null) 
+                ? estimateRepository.countByBuyerEntityAndEstimateDateBetweenAndStatusNot(buyer, startOfMonth, endOfMonth, EstimateStatus.CANCELLED) + 1 
+                : estimateRepository.countByEstimateDateBetweenAndStatusNot(startOfMonth, endOfMonth, EstimateStatus.CANCELLED) + 1;
+        
+        int month = docDate.getMonthValue(); // 1-12
         int year = docDate.getYear() % 100; // last 2 digits
 
-        return String.format("%s %s-%d%d%d", customerPrefix, globalPrefix, count, month, year);
+        return String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
     }
 }
