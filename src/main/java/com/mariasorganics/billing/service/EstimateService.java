@@ -36,7 +36,14 @@ public class EstimateService {
 
         // If the estimate is cancelled, update the Document # to denote that
         if (estimate.getStatus() == EstimateStatus.CANCELLED && estimate.getEstimateNumber() != null && !estimate.getEstimateNumber().endsWith("-CANC")) {
-            estimate.setEstimateNumber(estimate.getEstimateNumber() + "-CANC");
+            String baseCancel = estimate.getEstimateNumber() + "-CANC";
+            String cancelNumber = baseCancel;
+            int cancelSuffix = 1;
+            while (estimateRepository.existsByEstimateNumber(cancelNumber)) {
+                cancelNumber = baseCancel + "-" + cancelSuffix;
+                cancelSuffix++;
+            }
+            estimate.setEstimateNumber(cancelNumber);
         }
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -80,6 +87,15 @@ public class EstimateService {
         int month = docDate.getMonthValue(); // 1-12
         int year = docDate.getYear() % 100; // last 2 digits
 
-        return String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+        String estimateNumber;
+        do {
+            estimateNumber = String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+            if (!estimateRepository.existsByEstimateNumber(estimateNumber)) {
+                break;
+            }
+            count++;
+        } while (true);
+
+        return estimateNumber;
     }
 }

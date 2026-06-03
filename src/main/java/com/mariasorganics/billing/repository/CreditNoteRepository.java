@@ -10,4 +10,5 @@ public interface CreditNoteRepository extends JpaRepository<CreditNote, Long> {
     long countByStatusNot(com.mariasorganics.billing.model.CreditNoteStatus status);
     long countByBuyerEntityAndIssueDateBetweenAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.CreditNoteStatus status);
     long countByIssueDateBetweenAndStatusNot(java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.CreditNoteStatus status);
+    boolean existsByCreditNoteNumber(String creditNoteNumber);
 }

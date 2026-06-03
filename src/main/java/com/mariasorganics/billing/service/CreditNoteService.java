@@ -36,7 +36,14 @@ public class CreditNoteService {
 
         // If the credit note is cancelled (VOID), update the Document # to denote that
         if (creditNote.getStatus() == CreditNoteStatus.VOID && creditNote.getCreditNoteNumber() != null && !creditNote.getCreditNoteNumber().endsWith("-CANC")) {
-            creditNote.setCreditNoteNumber(creditNote.getCreditNoteNumber() + "-CANC");
+            String baseCancel = creditNote.getCreditNoteNumber() + "-CANC";
+            String cancelNumber = baseCancel;
+            int cancelSuffix = 1;
+            while (creditNoteRepository.existsByCreditNoteNumber(cancelNumber)) {
+                cancelNumber = baseCancel + "-" + cancelSuffix;
+                cancelSuffix++;
+            }
+            creditNote.setCreditNoteNumber(cancelNumber);
         }
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -80,6 +87,15 @@ public class CreditNoteService {
         int month = docDate.getMonthValue(); // 1-12
         int year = docDate.getYear() % 100; // last 2 digits
 
-        return String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+        String creditNoteNumber;
+        do {
+            creditNoteNumber = String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+            if (!creditNoteRepository.existsByCreditNoteNumber(creditNoteNumber)) {
+                break;
+            }
+            count++;
+        } while (true);
+
+        return creditNoteNumber;
     }
 }

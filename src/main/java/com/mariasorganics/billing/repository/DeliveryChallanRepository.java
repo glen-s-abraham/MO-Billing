@@ -10,4 +10,5 @@ public interface DeliveryChallanRepository extends JpaRepository<DeliveryChallan
     long countByStatusNot(com.mariasorganics.billing.model.DeliveryChallanStatus status);
     long countByBuyerEntityAndChallanDateBetweenAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.DeliveryChallanStatus status);
     long countByChallanDateBetweenAndStatusNot(java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.DeliveryChallanStatus status);
+    boolean existsByChallanNumber(String challanNumber);
 }

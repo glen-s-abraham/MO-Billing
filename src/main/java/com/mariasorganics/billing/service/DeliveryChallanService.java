@@ -37,7 +37,14 @@ public class DeliveryChallanService {
 
         // If the delivery challan is cancelled, update the Document # to denote that
         if (deliveryChallan.getStatus() == DeliveryChallanStatus.CANCELLED && deliveryChallan.getChallanNumber() != null && !deliveryChallan.getChallanNumber().endsWith("-CANC")) {
-            deliveryChallan.setChallanNumber(deliveryChallan.getChallanNumber() + "-CANC");
+            String baseCancel = deliveryChallan.getChallanNumber() + "-CANC";
+            String cancelNumber = baseCancel;
+            int cancelSuffix = 1;
+            while (deliveryChallanRepository.existsByChallanNumber(cancelNumber)) {
+                cancelNumber = baseCancel + "-" + cancelSuffix;
+                cancelSuffix++;
+            }
+            deliveryChallan.setChallanNumber(cancelNumber);
         }
 
         BigDecimal grandTotal = BigDecimal.ZERO;
@@ -81,6 +88,15 @@ public class DeliveryChallanService {
         int month = docDate.getMonthValue(); // 1-12
         int year = docDate.getYear() % 100; // last 2 digits
 
-        return String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+        String challanNumber;
+        do {
+            challanNumber = String.format("%s %s-%d%02d%02d", customerPrefix, globalPrefix, count, month, year);
+            if (!deliveryChallanRepository.existsByChallanNumber(challanNumber)) {
+                break;
+            }
+            count++;
+        } while (true);
+
+        return challanNumber;
     }
 }

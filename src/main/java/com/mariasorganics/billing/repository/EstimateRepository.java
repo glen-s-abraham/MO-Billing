@@ -10,4 +10,5 @@ public interface EstimateRepository extends JpaRepository<Estimate, Long> {
     long countByStatusNot(com.mariasorganics.billing.model.EstimateStatus status);
     long countByBuyerEntityAndEstimateDateBetweenAndStatusNot(com.mariasorganics.billing.model.Buyer buyer, java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.EstimateStatus status);
     long countByEstimateDateBetweenAndStatusNot(java.time.LocalDate startDate, java.time.LocalDate endDate, com.mariasorganics.billing.model.EstimateStatus status);
+    boolean existsByEstimateNumber(String estimateNumber);
 }
