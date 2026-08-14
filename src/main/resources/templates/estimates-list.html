@@ -30,6 +30,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link fw-bold" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled-estimates" type="button" role="tab" aria-controls="cancelled-estimates" aria-selected="false">Cancelled</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="booklets-tab" data-bs-toggle="tab" data-bs-target="#booklets-estimates" type="button" role="tab" aria-controls="booklets-estimates" aria-selected="false">Manual Booklets</button>
+            </li>
         </ul>
 
         <div class="tab-content" id="estimateTabsContent">
@@ -104,6 +107,36 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Manual Booklets Tab -->
+            <div class="tab-pane fade" id="booklets-estimates" role="tabpanel" aria-labelledby="booklets-tab">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle datatable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Booklet ID</th>
+                                <th>Date Generated</th>
+                                <th>Vendor (Buyer)</th>
+                                <th>Pages (Invoices)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="booklet : ${booklets}">
+                                <td data-label="Booklet ID" class="fw-bold text-primary" th:text="${booklet.bookletId}"></td>
+                                <td data-label="Date Generated" th:text="${#temporals.format(booklet.date, 'dd-MMM-yyyy')}"></td>
+                                <td data-label="Vendor" th:text="${booklet.buyerName}"></td>
+                                <td data-label="Pages" th:text="${booklet.pageCount}"></td>
+                                <td data-label="Actions">
+                                    <a th:href="@{/estimates/manual/booklets/{id}/pdf(id=${booklet.bookletId})}" class="btn btn-sm btn-outline-secondary shadow-sm">
+                                        <i class="bi bi-file-pdf"></i> Download Booklet
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -112,6 +145,14 @@
 <th:block th:replace="~{fragments :: datatables-js}"></th:block>
 <script>
     $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'booklets') {
+            var triggerEl = document.querySelector('#booklets-tab');
+            var tabObj = new bootstrap.Tab(triggerEl);
+            tabObj.show();
+        }
+
         $('.datatable').DataTable({
             "order": [ [0, "desc"] ],
             "language": {

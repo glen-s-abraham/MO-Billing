@@ -35,6 +35,21 @@ public class EstimateController {
         var allEstimates = estimateService.getAllEstimates();
         model.addAttribute("activeEstimates", allEstimates.stream().filter(e -> e.getStatus() != EstimateStatus.CANCELLED).toList());
         model.addAttribute("cancelledEstimates", allEstimates.stream().filter(e -> e.getStatus() == EstimateStatus.CANCELLED).toList());
+        
+        java.util.List<String> bookletIds = estimateService.getDistinctBookletIds();
+        java.util.List<java.util.Map<String, Object>> booklets = new java.util.ArrayList<>();
+        for (String id : bookletIds) {
+            java.util.List<Estimate> estimates = estimateService.getEstimatesByBookletId(id);
+            if (!estimates.isEmpty()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("bookletId", id);
+                map.put("pageCount", estimates.size());
+                map.put("buyerName", estimates.get(0).getBuyerEntity() != null ? estimates.get(0).getBuyerEntity().getName() : "Unknown");
+                map.put("date", estimates.get(0).getEstimateDate());
+                booklets.add(map);
+            }
+        }
+        model.addAttribute("booklets", booklets);
         return "estimates-list";
     }
 
@@ -170,26 +185,12 @@ public class EstimateController {
         }
         
         redirectAttributes.addFlashAttribute("successMessage", quantity + " manual invoices generated successfully. Booklet ID: " + bookletId);
-        return "redirect:/estimates/manual/booklets";
+        return "redirect:/estimates?tab=booklets";
     }
 
     @GetMapping("/manual/booklets")
     public String listBooklets(Model model) {
-        java.util.List<String> bookletIds = estimateService.getDistinctBookletIds();
-        java.util.List<java.util.Map<String, Object>> booklets = new java.util.ArrayList<>();
-        for (String id : bookletIds) {
-            java.util.List<Estimate> estimates = estimateService.getEstimatesByBookletId(id);
-            if (!estimates.isEmpty()) {
-                java.util.Map<String, Object> map = new java.util.HashMap<>();
-                map.put("bookletId", id);
-                map.put("pageCount", estimates.size());
-                map.put("buyerName", estimates.get(0).getBuyerEntity() != null ? estimates.get(0).getBuyerEntity().getName() : "Unknown");
-                map.put("date", estimates.get(0).getEstimateDate());
-                booklets.add(map);
-            }
-        }
-        model.addAttribute("booklets", booklets);
-        return "booklets-list";
+        return "redirect:/estimates?tab=booklets";
     }
 
     @GetMapping("/manual/booklets/{bookletId}/pdf")
