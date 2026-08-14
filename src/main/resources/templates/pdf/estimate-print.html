@@ -40,6 +40,7 @@
     </style>
 </head>
 <body>
+<div th:fragment="content">
     <div class="header">
         <img th:if="${settings.logoFilePath != null}" th:src="${settings.logoFilePath}" class="logo" alt="Logo" />
         <div th:class="${settings.logoFilePath != null ? 'company-details' : 'company-details-no-logo'}">
@@ -81,7 +82,9 @@
         </div>
         <div class="doc-meta">
             <strong>Estimate #:</strong> <span th:text="${estimate.estimateNumber}"></span><br/>
-            <strong>Date:</strong> <span th:text="${#temporals.format(estimate.estimateDate, 'dd MMM yyyy')}"></span>
+            <strong>Date:</strong> 
+            <span th:if="${estimate.isManual != null and estimate.isManual}">________________</span>
+            <span th:unless="${estimate.isManual != null and estimate.isManual}" th:text="${#temporals.format(estimate.estimateDate, 'dd MMM yyyy')}"></span>
             <div th:if="${estimate.status.name() == 'CANCELLED' or estimate.status.name() == 'REJECTED'}" style="color: red; margin-top: 10px; font-weight: bold; font-size: 18px; text-transform: uppercase;">
                 [<span th:text="${estimate.status}"></span>]
             </div>
@@ -107,9 +110,19 @@
                 <td th:unless="${item.productEntity != null}">Unknown Product</td>
                 
                 <td th:text="${#numbers.formatDecimal(item.mrp, 1, 2)}"></td>
-                <td th:text="${#numbers.formatDecimal(item.quantity, 1, 2)}"></td>
-                <td th:text="${#numbers.formatDecimal(item.rate, 1, 2)}"></td>
-                <td class="text-right" th:text="${#numbers.formatDecimal(item.rowTotal, 1, 2)}"></td>
+                <td th:if="${estimate.isManual != null and estimate.isManual}"></td>
+                <td th:unless="${estimate.isManual != null and estimate.isManual}" th:text="${#numbers.formatDecimal(item.quantity, 1, 2)}"></td>
+                <td th:if="${estimate.isManual != null and estimate.isManual}"></td>
+                <td th:unless="${estimate.isManual != null and estimate.isManual}" th:text="${#numbers.formatDecimal(item.rate, 1, 2)}"></td>
+                <td class="text-right" th:if="${estimate.isManual != null and estimate.isManual}"></td>
+                <td class="text-right" th:unless="${estimate.isManual != null and estimate.isManual}" th:text="${#numbers.formatDecimal(item.rowTotal, 1, 2)}"></td>
+            </tr>
+            <tr th:if="${estimate.items == null or #lists.isEmpty(estimate.items)}" th:each="i : ${#numbers.sequence(1, 10)}">
+                <td><br/><br/></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
         </tbody>
     </table>
@@ -118,7 +131,8 @@
         <table class="totals-table">
             <tr class="grand-total">
                 <td>Grand Total (INR):</td>
-                <td class="text-right" th:text="${#numbers.formatDecimal(estimate.totalAmount, 1, 2)}"></td>
+                <td class="text-right" th:if="${estimate.isManual != null and estimate.isManual}"></td>
+                <td class="text-right" th:unless="${estimate.isManual != null and estimate.isManual}" th:text="${#numbers.formatDecimal(estimate.totalAmount, 1, 2)}"></td>
             </tr>
         </table>
         <div style="clear: both;"></div>
@@ -139,5 +153,6 @@
         <img th:src="${settings.signatureBase64}" class="signature-img" alt="Signature" /><br/>
         Authorized Signatory
     </div>
+</div>
 </body>
 </html>

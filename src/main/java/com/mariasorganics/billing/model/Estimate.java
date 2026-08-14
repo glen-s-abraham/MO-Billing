@@ -36,6 +36,12 @@ public class Estimate {
     @NotNull
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    @Column(name = "is_manual")
+    private Boolean isManual = false;
+
+    @Column(name = "booklet_id")
+    private String bookletId;
+
     @Enumerated(EnumType.STRING)
     private EstimateStatus status = EstimateStatus.DRAFT;
 

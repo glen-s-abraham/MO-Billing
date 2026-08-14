@@ -48,6 +48,17 @@
                         </select>
                     </div>
                 </div>
+                <div class="row mt-2" th:if="${estimate.isManual != null and estimate.isManual}">
+                    <div class="col-12">
+                        <div class="alert alert-warning py-2 mb-0">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="isManualSwitch" th:field="*{isManual}">
+                                <label class="form-check-label fw-bold" for="isManualSwitch">Print as Blank Manual Invoice (hides date and totals on PDF)</label>
+                            </div>
+                            <small class="text-muted d-block mt-1">Uncheck this when you have digitized the manual invoice and want to print it with actual values.</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

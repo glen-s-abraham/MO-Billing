@@ -121,4 +121,109 @@ public class EstimateController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
+    @GetMapping("/manual/new")
+    public String showManualCreateForm(Model model) {
+        model.addAttribute("buyers", buyerService.getActiveBuyers());
+        model.addAttribute("products", productService.getActiveProducts());
+        return "manual-estimate-form";
+    }
+
+    @PostMapping("/manual/generate")
+    public String generateManualEstimates(
+            @RequestParam("buyerId") Long buyerId,
+            @RequestParam("quantity") Integer quantity,
+            @RequestParam(value = "productIds", required = false) java.util.List<Long> productIds,
+            RedirectAttributes redirectAttributes) {
+        
+        Buyer buyer = buyerService.getBuyerById(buyerId);
+        
+        if (quantity == null || quantity <= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Quantity must be greater than 0");
+            return "redirect:/estimates/manual/new";
+        }
+        
+        String bookletId = "B-" + System.currentTimeMillis();
+        
+        for (int i = 0; i < quantity; i++) {
+            Estimate estimate = new Estimate();
+            estimate.setBuyerEntity(buyer);
+            estimate.setEstimateDate(LocalDate.now());
+            estimate.setIsManual(true);
+            estimate.setBookletId(bookletId);
+            estimate.setTotalAmount(java.math.BigDecimal.ZERO);
+            
+            if (productIds != null && !productIds.isEmpty()) {
+                for (Long productId : productIds) {
+                    if (productId == null) continue;
+                    Product product = productService.getProductById(productId);
+                    EstimateItem item = new EstimateItem();
+                    item.setProductEntity(product);
+                    item.setQuantity(java.math.BigDecimal.ZERO);
+                    item.setRate(java.math.BigDecimal.ZERO);
+                    item.setMrp(product.getMrp() != null ? product.getMrp() : java.math.BigDecimal.ZERO);
+                    item.setRowTotal(java.math.BigDecimal.ZERO);
+                    estimate.addItem(item);
+                }
+            }
+            
+            estimateService.saveEstimate(estimate);
+        }
+        
+        redirectAttributes.addFlashAttribute("successMessage", quantity + " manual invoices generated successfully. Booklet ID: " + bookletId);
+        return "redirect:/estimates/manual/booklets";
+    }
+
+    @GetMapping("/manual/booklets")
+    public String listBooklets(Model model) {
+        java.util.List<String> bookletIds = estimateService.getDistinctBookletIds();
+        java.util.List<java.util.Map<String, Object>> booklets = new java.util.ArrayList<>();
+        for (String id : bookletIds) {
+            java.util.List<Estimate> estimates = estimateService.getEstimatesByBookletId(id);
+            if (!estimates.isEmpty()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("bookletId", id);
+                map.put("pageCount", estimates.size());
+                map.put("buyerName", estimates.get(0).getBuyerEntity() != null ? estimates.get(0).getBuyerEntity().getName() : "Unknown");
+                map.put("date", estimates.get(0).getEstimateDate());
+                booklets.add(map);
+            }
+        }
+        model.addAttribute("booklets", booklets);
+        return "booklets-list";
+    }
+
+    @GetMapping("/manual/booklets/{bookletId}/pdf")
+    public ResponseEntity<byte[]> downloadBookletPdf(@PathVariable String bookletId, HttpServletRequest request) {
+        java.util.List<Estimate> estimates = estimateService.getEstimatesByBookletId(bookletId);
+        if (estimates.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Context context = new Context();
+        context.setVariable("estimates", estimates);
+        
+        SettingsFormDto settings = settingsService.getSettings();
+        if (settings.getLogoFilePath() != null && settings.getLogoFilePath().startsWith("/uploads/")) {
+            try {
+                java.nio.file.Path imagePath = java.nio.file.Paths.get("." + settings.getLogoFilePath());
+                byte[] imageBytes = java.nio.file.Files.readAllBytes(imagePath);
+                String base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes);
+                String extension = settings.getLogoFilePath().toLowerCase().endsWith(".png") ? "png" : "jpeg";
+                settings.setLogoFilePath("data:image/" + extension + ";base64," + base64Image);
+            } catch (Exception e) {
+                System.err.println("Failed to load logo for PDF rendering: " + e.getMessage());
+            }
+        }
+        context.setVariable("settings", settings);
+        
+        String htmlContent = templateEngine.process("pdf/booklet-print", context);
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        
+        byte[] pdfBytes = pdfGenerationService.generatePdfFromHtml(htmlContent, baseUrl);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Booklet-" + bookletId + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
 }

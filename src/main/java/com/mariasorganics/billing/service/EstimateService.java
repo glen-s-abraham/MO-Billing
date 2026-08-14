@@ -28,6 +28,14 @@ public class EstimateService {
         return estimateRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid estimate ID: " + id));
     }
 
+    public List<Estimate> getEstimatesByBookletId(String bookletId) {
+        return estimateRepository.findByBookletIdOrderByIdAsc(bookletId);
+    }
+
+    public List<String> getDistinctBookletIds() {
+        return estimateRepository.findDistinctBookletIds();
+    }
+
     @Transactional
     public Estimate saveEstimate(Estimate estimate) {
         if (estimate.getId() == null && (estimate.getEstimateNumber() == null || estimate.getEstimateNumber().isEmpty())) {

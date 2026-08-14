@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments :: common_head('Generate Manual Invoices')}"></th:block>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: bottom_nav}"></div>
+
+<div class="container">
+    <div class="mb-4">
+        <h2>Generate Manual Invoices</h2>
+        <a href="/estimates" class="text-decoration-none">&larr; Back to Estimates</a>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/estimates/manual/generate}" method="post" id="manualEstimateForm">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary">Batch Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Select Vendor (Buyer)</label>
+                        <select class="form-select" name="buyerId" id="buyerSelect" required>
+                            <option value="">-- Select Vendor --</option>
+                            <option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:text="${buyer.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Quantity (Number of Invoices to Generate)</label>
+                        <input type="number" class="form-control" name="quantity" min="1" value="1" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary">Products to Include on Blank Invoices</h5>
+                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="addRowBtn">+ Add Product</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0" id="itemsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th width="10%" class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTbody">
+                            <!-- Template row for JS cloning -->
+                            <tr class="item-row template-row d-none bg-light">
+                                <td>
+                                    <select class="form-select product-select" disabled>
+                                        <option value="">-- Select Product --</option>
+                                        <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.title}"></option>
+                                    </select>
+                                </td>
+                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row-btn fw-bold">X</button></td>
+                            </tr>
+                            
+                            <!-- Initial empty row -->
+                            <tr class="item-row">
+                                <td>
+                                    <select class="form-select product-select" name="productIds">
+                                        <option value="">-- Select Product --</option>
+                                        <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.title}"></option>
+                                    </select>
+                                </td>
+                                <td class="text-center"><button type="button" class="btn btn-sm btn-danger remove-row-btn fw-bold">X</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-3 text-muted small">
+                    <i class="bi bi-info-circle"></i> Quantities, rates, and totals will be blank on the printed PDFs. You can leave this empty if you want entirely blank rows.
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow-sm rounded-pill">Generate Batch</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.getElementById('itemsTbody');
+
+    new TomSelect("#buyerSelect", {
+        create: false,
+        placeholder: "-- Select Vendor --",
+        onItemAdd: function() {
+            this.blur();
+        }
+    });
+
+    tbody.addEventListener('click', function(e) {
+        if(e.target.classList.contains('remove-row-btn')) {
+            e.target.closest('tr').remove();
+        }
+    });
+
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+        const template = document.querySelector('.template-row').cloneNode(true);
+        template.classList.remove('template-row', 'd-none', 'bg-light');
+        
+        const select = template.querySelector('select');
+        select.disabled = false;
+        select.name = 'productIds';
+        
+        tbody.appendChild(template);
+    });
+});
+</script>
+</body>
+</html>
